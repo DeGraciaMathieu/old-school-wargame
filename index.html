@@ -76,7 +76,7 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .shifts li{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:2px 0}
 .crtrow{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin:6px 0 10px;font-family:var(--f-cond);font-size:13px;text-align:center}
 .crtrow div{background:var(--panel2);padding:3px 0;border:1px solid var(--line)}
-.crtrow div small{display:block;color:var(--muted);font-size:11px}
+.crtrow div small{display:block;color:inherit;opacity:.7;font-size:11px;font-weight:500}
 .crtrow .good{color:#bfe08a} .crtrow .bad{color:#f19a85}
 .die{width:54px;height:54px;border-radius:9px;background:var(--paper);color:#1b1505;display:grid;place-items:center;font-family:var(--f-display);font-size:32px;flex:none;box-shadow:0 2px 0 #9c9273}
 .die.roll{animation:roll .5s ease-out}
@@ -146,6 +146,19 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .crt th,.crt td{border:1px solid var(--line);padding:3px 6px;text-align:center}
 .crt th{color:var(--muted);font-weight:600}
 .scrollx{overflow-x:auto}
+/* Résultats de combat, du pire au meilleur pour l'attaquant */
+.r{font-weight:700}
+.r.A1{background:#6b2a20;color:#f6cfc4}
+.r.NE{background:transparent;color:var(--muted);font-weight:500}
+.r.EX{background:#5c4a17;color:#f2d68c}
+.r.D1{background:#34442a;color:#d9e6c4}
+.r.D2{background:#3e5329;color:#e0edc9}
+.r.DL{background:#4a6528;color:#eaf4d4}
+.r.DL2{background:#587a2b;color:#f2f9e3}
+.r.DE{background:#8bb043;color:#121a06}
+.legend{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:14px}
+.legend li{display:flex;align-items:center;gap:8px}
+.legend b.r{flex:none;min-width:42px;text-align:center;padding:2px 4px;font-family:var(--f-cond);border:1px solid var(--line)}
 
 /* Score en direct sur la carte */
 .mapscore{position:absolute;left:10px;top:10px;display:flex;align-items:center;gap:10px;padding:6px 12px 6px 10px;background:rgba(27,30,28,.92);border:1px solid var(--line);pointer-events:none}
@@ -430,7 +443,7 @@ async function doMove(u,k,r){
   for(const p of r.path.slice(1))placeUnit(u,p);
   u.mp=r.zoc?0:Math.max(0,u.mp-r.cost);
   busy=false;
-  if(!isAI(u.side)&&u.mp>0)selectUnit(u);else{sel={hex:k};render();}
+  sel={hex:k};render();
   save();
 }
 function undoMove(){
@@ -827,7 +840,7 @@ function combatBlock(ph){
   s+=`<div class="odds"><span class="big">${o.fin<0?'—':COLL[o.fin]}</span><span class="hint" style="margin:0">${o.A} contre ${o.D}${o.col>=0&&o.fin!==o.col?` · rapport brut ${COLL[o.col]}`:''}</span></div>`;
   if(o.shifts.length)s+='<ul class="shifts">'+o.shifts.map(x=>`<li><span>${x[0]}</span><span>${x[1]>0?'+':'−'}${Math.abs(x[1])}</span></li>`).join('')+'</ul>';
   if(o.fin<0)return s+'<p class="hint">Rapport inférieur à 1:2 : attaque impossible.</p><div class="btns"><button class="btn ghost" type="button" data-act="cancel">Annuler</button></div></div>';
-  s+='<div class="crtrow">'+CRT[o.fin].map((c,i)=>`<div class="${goodFor(c)}"><small>${i+1}</small>${c}</div>`).join('')+'</div>';
+  s+='<div class="crtrow">'+CRT[o.fin].map((c,i)=>`<div class="r ${c}"><small>${i+1}</small>${c}</div>`).join('')+'</div>';
   return s+`<div class="btns"><button class="btn red" type="button" data-act="attack">Lancer le dé</button><button class="btn ghost" type="button" data-act="cancel">Annuler</button></div></div>`;
 }
 function resultBlock(ph){
@@ -904,10 +917,24 @@ function onHex(k){
   sel={hex:k};render();
 }
 svg.addEventListener('click',e=>{const el=e.target.closest('[data-k]');if(el)onHex(el.getAttribute('data-k'));});
+function confirmEndCombat(side){
+  const enemy=other(side);
+  const opts=[...new Set(state.units.filter(u=>onMap(u)&&u.side===enemy).map(u=>u.pos))]
+    .filter(k=>canTarget(k,side)).map(k=>({k,o:odds(k,eligibleAttackers(k,side))}))
+    .filter(x=>x.o.fin>=0).sort((a,b)=>b.o.fin-a.o.fin);
+  if(!opts.length)return false;
+  const name=k=>HEX[k].town?TOWNS[HEX[k].town].name:TERRAIN[HEX[k].t]+' ('+k+')';
+  const tone=fin=>{const g=CRT[fin].filter(c=>c!=='A1'&&c!=='NE').length;return g<=2?'A1':g===3?'EX':g===4?'D2':g===5?'DL':'DE';};
+  const n=opts.length,s=n>1?'s':'';
+  AUDIO.tick();
+  openModal(`<span class="eyebrow">${PHASES[state.phase].label}</span><h2>Terminer les combats ?</h2><p>Il reste ${n} attaque${s} possible${s}. Le rapport indiqué suppose que toutes les unités adjacentes participent.</p><ul class="legend">${opts.slice(0,6).map(x=>`<li><b class="r ${tone(x.o.fin)}">${COLL[x.o.fin]}</b><span>${esc(name(x.k))}</span></li>`).join('')}</ul>${n>6?`<p style="margin-top:8px">Et ${n-6} autre${n-6>1?'s':''}.</p>`:''}<div class="btns" style="margin-top:16px"><button class="btn" type="button" data-close="1">Continuer les combats</button><button class="btn ghost" type="button" data-end-confirm="1">Terminer quand même</button></div>`);
+  const f=sheet.querySelector('[data-close]');if(f)f.focus();
+  return true;
+}
 function onAction(e){
   const b=e.target.closest('[data-act]');if(!b||busy)return;
   const act=b.getAttribute('data-act'),id=b.getAttribute('data-id'),ph=PHASES[state.phase];
-  if(act==='end'){sel={};endPhase();}
+  if(act==='end'){if(ph.kind==='combat'&&confirmEndCombat(ph.side))return;sel={};endPhase();}
   else if(act==='undo')undoMove();
   else if(act==='unit'){const u=U(id);if(ph.kind==='move'&&u.side===ph.side&&!isAI(ph.side)){AUDIO.pick();selectUnit(u);}}
   else if(act==='toggle'){AUDIO.tick();if(b.checked)sel.attackers.add(id);else sel.attackers.delete(id);render();}
@@ -933,8 +960,9 @@ function rulesScreen(){
   <h3>Les pions</h3><ul><li>Valeurs : attaque, défense, mouvement. Un coin rouge signale une unité réduite (elle a perdu un pas). La plupart des unités ont 2 pas.</li><li>Symboles : croix pour l'infanterie, ovale pour les blindés, les deux pour l'infanterie mécanisée, aile pour les parachutistes.</li><li>Empilement : 2 unités au maximum par hexagone. Touchez une pile plusieurs fois pour passer d'une unité à l'autre.</li></ul>
   <h3>Mouvement</h3><ul><li>Dégagé 1 PM, forêt 2 PM (3 pour les blindés et mécanisés), village ou ville 1 PM.</li><li>En suivant une route : ½ PM par hexagone, ponts compris.</li><li>Traverser une rivière hors pont : +2 PM.</li><li>Une unité qui n'a pas encore bougé peut toujours avancer d'un hexagone.</li><li>Zone de contrôle (ZOC) : les 6 hexagones autour d'une unité. Entrer en ZOC ennemie arrête le mouvement, et on ne peut pas passer directement d'une ZOC ennemie à une autre.</li></ul>
   <h3>Combat</h3><ul><li>Facultatif. On attaque un hexagone ennemi adjacent ; plusieurs unités peuvent s'associer. Chaque unité attaque une fois, chaque hexagone n'est attaqué qu'une fois par phase.</li><li>Le rapport attaque/défense est arrondi en faveur du défenseur, puis décalé : forêt −1, village −1, ville −2, toutes les unités attaquent à travers une rivière −1, blindés contre un défenseur sans blindés en terrain dégagé +1.</li><li>Repli : chaque hexagone impossible à parcourir coûte 1 pas, de même qu'un hexagone en ZOC ennemie qui n'est pas occupé par une unité amie.</li><li>Si l'hexagone attaqué se vide, les attaquants peuvent y avancer.</li></ul>
-  <div class="scrollx"><table class="crt"><thead><tr><th>Dé</th>${COLL.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${[0,1,2,3,4,5].map(d=>`<tr><th>${d+1}</th>${CRT.map(col=>`<td>${col[d]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-  <ul style="margin-top:10px;color:var(--muted)">${Object.entries(RES).map(([c,t])=>`<li><b style="color:var(--ink)">${c}</b> : ${t}</li>`).join('')}</ul>
+  <p style="margin:8px 0">Croisez la colonne du rapport de force avec la ligne du dé. Les couleurs vont du rouge au vert, du pire au meilleur pour l'attaquant.</p>
+  <div class="scrollx"><table class="crt"><thead><tr><th>Dé</th>${COLL.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${[0,1,2,3,4,5].map(d=>`<tr><th>${d+1}</th>${CRT.map(col=>`<td class="r ${col[d]}">${col[d]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <ul class="legend">${['A1','NE','EX','D1','D2','DL','DL2','DE'].map(c=>`<li><b class="r ${c}">${c}</b><span>${RES[c]}</span></li>`).join('')}</ul>
   <h3>Son</h3><ul><li>Les boutons Son et Ambiance, en haut, coupent tout le son ou seulement le vent et l'artillerie lointaine. Sur iPhone, le mode silencieux coupe aussi le son du jeu.</li></ul>
   <h3>Victoire</h3><ul><li>Une ville est contrôlée par le dernier camp à y être entré. Points allemands : Bastogne 5, Wiltz 2, Houffalize 2, Clervaux 1, Hosingen 1.</li><li>Fin du 19 décembre : 5 points ou plus, victoire allemande ; 3 ou 4, nul ; 2 ou moins, victoire américaine.</li></ul></div>
   <div class="btns" style="margin-top:16px"><button class="btn" type="button" data-close="1">${state?'Retour à la partie':'Retour'}</button></div>`);
@@ -943,9 +971,11 @@ sheet.addEventListener('click',e=>{
   const m=e.target.closest('[data-mode]');if(m){fieldCache.clear();newGame(m.getAttribute('data-mode'));return;}
   if(e.target.closest('[data-resume]')){state=loadSaved();closeModal();undo=[];sel={};render();const ph=PHASES[state.phase];if(isAI(ph.side))setTimeout(runAI,450);return;}
   if(e.target.closest('[data-rules]')){rulesScreen();return;}
+  if(e.target.closest('[data-end-confirm]')){closeModal();sel={};endPhase();return;}
   if(e.target.closest('[data-close]')){if(state)closeModal();else startScreen();}
 });
 document.getElementById('btnRules').addEventListener('click',rulesScreen);
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||modal.hidden)return;const c=sheet.querySelector('[data-close]');if(c){e.preventDefault();c.click();}});
 document.getElementById('btnNew').addEventListener('click',()=>{if(!busy)startScreen();});
 
 /* ---------- Zoom ---------- */
