@@ -29,7 +29,8 @@ button{font:inherit;color:inherit}
 .tcell b{display:block;font-size:14px;color:var(--ink);font-weight:600}
 .tcell.past{opacity:.45}
 .tcell.now{border-color:var(--amber);background:#3a3221;color:var(--ink)}
-.tcell .rf{position:absolute;top:-6px;right:-4px;font-size:9px;font-weight:700;padding:0 3px;border-radius:2px;color:#171a0e}
+.tcell .rfs{position:absolute;top:-7px;right:-4px;display:flex;gap:2px}
+.tcell .rf{font-size:9px;font-weight:700;padding:0 3px;border-radius:2px;color:#171a0e;line-height:1.3}
 .rf.us{background:var(--us)} .rf.de{background:var(--de)}
 .tools{display:flex;gap:6px;flex-wrap:wrap}
 
@@ -154,6 +155,13 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .mapscore .lbl em.de{color:var(--de)} .mapscore .lbl em.us{color:var(--us)} .mapscore .lbl em.mid{color:var(--amber)}
 .mapscore.pulse{animation:pulse 1s ease-out}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(227,169,61,.85);border-color:var(--amber)}100%{box-shadow:0 0 0 16px rgba(227,169,61,0)}}
+/* Barre d'action sur la carte (téléphone) */
+.mapact{position:absolute;left:10px;right:56px;bottom:10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px;background:rgba(27,30,28,.95);border:1px solid var(--amber)}
+.mapact span{width:100%;font-family:var(--f-cond);font-weight:600;font-size:15px;letter-spacing:.02em}
+.mapact .btn{padding:7px 12px;font-size:14px}
+@media (min-width:901px){.mapact{display:none}}
+.hl-adv{fill:rgba(227,169,61,.55);stroke:#a26f12;stroke-width:2.5;animation:advp .9s ease-in-out infinite alternate}
+@keyframes advp{from{fill-opacity:.3}to{fill-opacity:.85}}
 /* Son et impacts */
 .tog[aria-pressed="false"]{color:var(--muted);text-decoration:line-through}
 .mapwrap.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
@@ -168,7 +176,7 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
   .tcell{min-width:40px}
 }
 @media (prefers-reduced-motion:reduce){
-  .hl-target{animation:none} .mapscore.pulse{animation:none} .mapwrap.shake{animation:none} .blast{animation-duration:.01s} .die.roll{animation:none} .fx{animation-duration:.01s;animation-delay:1.2s}
+  .hl-target{animation:none} .hl-adv{animation:none} .mapscore.pulse{animation:none} .mapwrap.shake{animation:none} .blast{animation-duration:.01s} .die.roll{animation:none} .fx{animation-duration:.01s;animation-delay:1.2s}
 }
 </style>
 
@@ -190,6 +198,7 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
     <section class="mapwrap" aria-label="Carte">
       <div class="mapscroll" id="mapscroll"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg></div>
       <div class="mapscore" id="mapscore" aria-live="polite"></div>
+      <div class="mapact" id="mapact" hidden></div>
       <div class="zoom"><button type="button" id="zin" aria-label="Zoomer">+</button><button type="button" id="zout" aria-label="Dézoomer">−</button></div>
     </section>
     <aside class="panel" id="panel"></aside>
@@ -748,7 +757,8 @@ function renderMap(){
   if(sel.reach)for(const [k,r] of sel.reach)h+=`<polygon class="${r.zoc?'hl-reachz':'hl-reach'}" points="${POLY[k]}"/>`;
   if(human&&ph.kind==='combat'&&!busy){for(const k of new Set(state.units.filter(u=>onMap(u)&&u.side!==ph.side).map(u=>u.pos)))if(canTarget(k,ph.side)&&k!==sel.target)h+=`<polygon class="hl-target" points="${POLY[k]}"/>`;}
   if(sel.target){h+=`<polygon class="hl-tsel" points="${POLY[sel.target]}"/>`;const hexes=new Set([...(sel.attackers||[])].map(id=>U(id).pos));for(const k of hexes)h+=`<polygon class="hl-atk" points="${POLY[k]}"/>`;}
-  if(sel.hex&&!sel.target)h+=`<polygon class="hl-sel" points="${POLY[sel.hex]}"/>`;
+  if(sel.result&&sel.result.adv.length&&human&&!busy)h+=`<polygon class="hl-adv" points="${POLY[sel.result.k]}"/>`;
+  else if(sel.hex&&!sel.target)h+=`<polygon class="hl-sel" points="${POLY[sel.hex]}"/>`;
   svg.querySelector('#hl').innerHTML=h;
   let l='';
   for(const id in TOWNS){const t=TOWNS[id];const [x,y]=center(t.c,t.r);l+=`<text class="tlabel" x="${x.toFixed(1)}" y="${(y+24).toFixed(1)}">${t.name}</text>`;
@@ -845,11 +855,10 @@ function renderPanel(){
   s+='</ul></div>';
   const next=ARRIVALS.filter(a=>a.turn>state.turn||(a.turn===state.turn&&state.phase<(a.side==='de'?0:2)));
   if(next.length)s+=`<div class="box"><span class="eyebrow">Renforts à venir</span><ul class="reinf">${next.map(a=>`<li>Tour ${a.turn} (${turnLabel(a.turn)}) : ${a.text}</li>`).join('')}</ul></div>`;
-  s+=`<div class="box"><span class="eyebrow">Journal des opérations</span><ul class="log">${state.log.map(e=>`<li class="${e.side}">T${e.t} · ${e.text}</li>`).join('')}</ul></div>`;
   panel.innerHTML=s;
 }
 function renderTrack(){
-  let s='';for(let t=1;t<=TURNS;t++){const a=ARRIVALS.filter(x=>x.turn===t);s+=`<div class="tcell${t<state.turn?' past':''}${t===state.turn?' now':''}" title="${turnLabel(t)}"><b>${16+Math.floor((t-1)/2)}</b>${t%2?'matin':'a.-midi'}${a.map(x=>`<span class="rf ${x.side}">${x.side==='de'?'DE':'US'}</span>`).join('').slice(0,a.length?999:0)}</div>`;}
+  let s='';for(let t=1;t<=TURNS;t++){const a=ARRIVALS.filter(x=>x.turn===t);s+=`<div class="tcell${t<state.turn?' past':''}${t===state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+(x.side==='de'?'allemands':'américains')+' : '+x.text).join('')}"><b>${16+Math.floor((t-1)/2)}</b>${t%2?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">${x.side==='de'?'DE':'US'}</span>`).join('')}</span>`:''}</div>`;}
   document.getElementById('track').innerHTML=s;
 }
 const scoreEl=document.getElementById('mapscore');
@@ -857,15 +866,33 @@ function renderScore(){
   const vp=vpOf('de'),st=vp>=5?['victoire allemande','de']:vp>=3?['match nul','mid']:['victoire américaine','us'];
   scoreEl.innerHTML=`<b>${vp}</b><span class="lbl">PV allemands sur 11<em class="${st[1]}">${state.over?'Résultat':'Tendance'} : ${st[0]}</em></span>`;
 }
+const actEl=document.getElementById('mapact');
+function renderAct(){
+  const ph=PHASES[state.phase];let h='';
+  if(!state.over&&!isAI(ph.side)&&!busy){
+    if(sel.result&&sel.result.adv.length){
+      const r=sel.result,where=HEX[r.k].town?TOWNS[HEX[r.k].town].name:'la case';
+      h=`<span>${r.code} : ${esc(where)} est libre. Avancer avec :</span>`+r.adv.map(id=>`<button class="btn" type="button" data-act="advance" data-id="${id}">${esc(U(id).name)}</button>`).join('')+'<button class="btn ghost" type="button" data-act="cancel">Rester</button>';
+    }else if(sel.target){
+      const atk=eligibleAttackers(sel.target,ph.side).filter(u=>sel.attackers.has(u.id));
+      if(atk.length){const o=odds(sel.target,atk);if(o.fin>=0)h=`<span>Attaque à ${COLL[o.fin]} avec ${atk.length} unité${atk.length>1?'s':''}</span><button class="btn red" type="button" data-act="attack">Lancer le dé</button><button class="btn ghost" type="button" data-act="cancel">Annuler</button>`;}
+    }
+  }
+  actEl.innerHTML=h;actEl.hidden=!h;
+}
 function pulseScore(){scoreEl.classList.remove('pulse');void scoreEl.offsetWidth;scoreEl.classList.add('pulse');}
-function render(){if(!state)return;renderTrack();renderMap();renderScore();renderPanel();}
+function render(){if(!state)return;renderTrack();renderMap();renderScore();renderAct();renderPanel();}
 
 /* ---------- Interactions ---------- */
 function onHex(k){
   if(busy||!state||state.over)return;
   const ph=PHASES[state.phase];
   if(isAI(ph.side)){sel={hex:k};render();return;}
-  if(sel.result){sel={};}
+  if(sel.result){
+    const r=sel.result;
+    if(k===r.k&&r.adv.length){advance(r.adv.map(U).sort((a,b)=>vals(b)[0]-vals(a)[0])[0].id);return;}
+    sel={};
+  }
   if(ph.kind==='move'){
     if(sel.reach&&sel.reach.has(k)){doMove(U(sel.unit),k,sel.reach.get(k));return;}
     const own=unitsAt(k).filter(u=>u.side===ph.side);
@@ -877,7 +904,7 @@ function onHex(k){
   sel={hex:k};render();
 }
 svg.addEventListener('click',e=>{const el=e.target.closest('[data-k]');if(el)onHex(el.getAttribute('data-k'));});
-panel.addEventListener('click',e=>{
+function onAction(e){
   const b=e.target.closest('[data-act]');if(!b||busy)return;
   const act=b.getAttribute('data-act'),id=b.getAttribute('data-id'),ph=PHASES[state.phase];
   if(act==='end'){sel={};endPhase();}
@@ -887,7 +914,9 @@ panel.addEventListener('click',e=>{
   else if(act==='attack'){const atk=[...sel.attackers].map(U).filter(u=>!u.attacked);if(!atk.length)return;const r=resolve(sel.target,atk);r.fresh=true;sel={hex:r.k,result:r};render();save();}
   else if(act==='advance')advance(id);
   else if(act==='cancel'){AUDIO.tick();sel={};render();}
-});
+}
+panel.addEventListener('click',onAction);
+actEl.addEventListener('click',onAction);
 
 /* ---------- Fenêtres ---------- */
 const modal=document.getElementById('modal'),sheet=document.getElementById('sheet');
