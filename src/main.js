@@ -1,18 +1,19 @@
 import {
   R,COLS,ROWS,PAD,TOWNS,TERRAIN,STACK_LIMIT,DEFAULT_STEPS,OOB,ARRIVALS,PHASES,SIDE,TURNS,FIRST_DAY,COLL,CRT,RES,
-  DIE_SIDES,OOS_CUT,OOS_ISOLATED,VP_GERMAN_WIN,VP_DRAW,VP_TOTAL,AI_US_SLOTS,AI_DE_CAP_BASTOGNE,AI_DE_CAP_OTHER,
-  AI_DE_VP_WEIGHT,AI_COMBAT_GUARD,AI_START_DELAY,AI_END_PHASE_DELAY,AI_MOVE_PAUSE,AI_TARGET_PAUSE,AI_RESULT_PAUSE,
-  AI_ADVANCE_PAUSE,SUPPLY_FX_DELAY,SUPPLY_FX_STAGGER,CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,
-  MOVE_MS_PER_HEX,MOVE_ANIM_FALLBACK,SAVE_KEY,AUDIO_PREF_KEY,LOG_MAX,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,
-  ZOOM_INIT_MIN,ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
+  OOS_CUT,OOS_ISOLATED,VP_GERMAN_WIN,VP_DRAW,VP_TOTAL,AI_US_SLOTS,AI_DE_CAP_BASTOGNE,AI_DE_CAP_OTHER,AI_DE_VP_WEIGHT,
+  AI_COMBAT_GUARD,AI_START_DELAY,AI_END_PHASE_DELAY,AI_MOVE_PAUSE,AI_TARGET_PAUSE,AI_RESULT_PAUSE,AI_ADVANCE_PAUSE,
+  SUPPLY_FX_DELAY,SUPPLY_FX_STAGGER,CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,MOVE_MS_PER_HEX,
+  MOVE_ANIM_FALLBACK,SAVE_KEY,AUDIO_PREF_KEY,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,ZOOM_INIT_MIN,
+  ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
 } from './config.js';
-import { key, unkey, DE, DO, neighbors, dist, ek } from './rules/hex.js';
+import { key, unkey, DE, DO, neighbors, ek } from './rules/hex.js';
 import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
 import * as movement from './rules/movement.js';
 import * as control from './rules/control.js';
 import * as supply from './rules/supply.js';
 import * as combat from './rules/combat.js';
 import * as victory from './rules/victory.js';
+import * as journal from './rules/journal.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -55,7 +56,7 @@ function checkSupply(side){
 }
 const vpOf=side=>victory.vpOf(state,side);
 
-function log(text,side){state.log.unshift({t:state.turn,text,side:side||''});if(state.log.length>LOG_MAX)state.log.length=LOG_MAX;}
+const log=(text,side)=>journal.pushLog(state,text,side);
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(e){}}
 function loadSaved(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return s&&s.units&&!s.over?s:null;}catch(e){return null;}}
 
@@ -69,8 +70,11 @@ function newGame(mode){
 
 function placeUnit(u,k){u.pos=k;const id=victory.townTakenBy(state,u.side,k);if(id){const prev=state.control[id];state.control[id]=u.side;if(prev!==u.side)captured(id,u.side);}}
 function captured(id,side){
+  log(journal.captureText(state,id,side),side);
+  captureEffects(id,side);
+}
+function captureEffects(id,side){
   const t=TOWNS[id];AUDIO.stamp();
-  log(`<b>${t.name}</b> passe aux mains des ${SIDE[side].toLowerCase()}${t.vp?` : ${side==='de'?'+':'−'}${t.vp} PV allemands, total ${vpOf('de')}`:''}.`,side);
   if(t.vp)setTimeout(()=>{fx(townKey(id),(side==='de'?'+':'−')+t.vp+' PV',side==='de'?'':'bad');pulseScore();},CAPTURE_FX_DELAY);
 }
 function freeHexNear(start,side){
@@ -139,53 +143,13 @@ function selectUnit(u){sel={hex:u.pos,unit:u.id,reach:u.mp>0?reach(u):new Map()}
 const eligibleAttackers=(k,side)=>combat.eligibleAttackers(state,k,side);
 const canTarget=(k,side)=>combat.canTarget(state,k,side);
 const odds=(k,atk)=>combat.odds(state,k,atk);
-function stepLoss(list){
-  const alive=list.filter(u=>!u.dead);if(!alive.length)return null;
-  alive.sort((a,b)=>(b.steps-a.steps)||(vals(b)[0]+vals(b)[1]-vals(a)[0]-vals(a)[1]));
-  const u=alive[0];u.steps--;
-  if(u.steps<=0){u.dead=true;u.pos=null;return u.name+' est détruit';}
-  return u.name+' est réduit';
-}
-function retreatUnit(u,n,enemy,fromHexes){
-  let cur=u.pos,lost=0;const seen=new Set([cur]);
-  for(let i=0;i<n;i++){
-    const eo=occ(enemy),ez=zocOf(enemy),eb=bondsOf(enemy);
-    const c=neighbors(cur).filter(h=>!seen.has(h)&&!eo.has(h)&&!eb.has(h)&&stackCount(h,u.side,u)<STACK_LIMIT);
-    if(!c.length){lost+=n-i;break;}
-    const score=h=>{const z=ez.has(h)&&stackCount(h,u.side,u)===0;const d=Math.min(...fromHexes.map(f=>dist(f,h)));const dir=u.side==='us'?-HEX[h].c:HEX[h].c;return (z?-100:0)+d*10+dir+(HEX[h].t!=='clear'?0.5:0);};
-    c.sort((a,b)=>score(b)-score(a));
-    const h=c[0];if(ez.has(h)&&stackCount(h,u.side,u)===0)lost++;
-    seen.add(h);cur=h;
-  }
-  placeUnit(u,cur);
-  const notes=[];
-  for(let i=0;i<lost&&!u.dead;i++){u.steps--;if(u.steps<=0){u.dead=true;u.pos=null;}}
-  if(lost)notes.push(u.dead?u.name+' est détruit pendant le repli':u.name+' perd 1 pas pendant le repli');
-  return notes;
-}
 function resolve(k,atk,rng){
-  const side=atk[0].side,enemy=other(side),o=odds(k,atk),alive0=state.units.filter(u=>!u.dead).length;
-  const die=1+Math.floor(rng()*DIE_SIDES),code=CRT[o.fin][die-1];
-  const defs=o.defs,fromHexes=[...new Set(atk.map(a=>a.pos))];
-  atk.forEach(a=>a.attacked=true);state.attacked.push(k);
-  const notes=[];
-  const retreatAll=n=>{for(const d of defs)if(!d.dead)notes.push(...retreatUnit(d,n,side,fromHexes));};
-  switch(code){
-    case 'A1':notes.push(stepLoss(atk));break;
-    case 'EX':notes.push(stepLoss(defs));notes.push(stepLoss(atk));break;
-    case 'D1':retreatAll(1);break;
-    case 'D2':retreatAll(2);break;
-    case 'DL':notes.push(stepLoss(defs));retreatAll(1);break;
-    case 'DL2':notes.push(stepLoss(defs));retreatAll(2);break;
-    case 'DE':for(const d of defs){d.dead=true;d.pos=null;}notes.push(defs.map(d=>d.name).join(', ')+' éliminé'+(defs.length>1?'s':''));break;
-  }
-  const where=HEX[k].town?TOWNS[HEX[k].town].name:'en '+TERRAIN[HEX[k].t].toLowerCase();
-  log(`<b>${COLL[o.fin]}</b>, dé ${die} : ${RES[code]} (${where}).${notes.filter(Boolean).length?' '+notes.filter(Boolean).join(' ; ')+'.':''}`,side);
-  const vacated=!unitsAt(k).some(u=>u.side===enemy);
-  const adv=vacated?atk.filter(a=>!a.dead&&neighbors(k).includes(a.pos)).map(a=>a.id):[];
-  const killed=alive0-state.units.filter(u=>!u.dead).length;
+  const r=combat.resolveCombat(state,k,atk.map(a=>a.id),rng);
+  state=r.state;
+  for(const c of r.captures)captureEffects(c.id,c.side);
+  const {code,killed}=r.result;
   AUDIO.dice();AUDIO.combat(code,killed);setTimeout(()=>impact(k,code,killed),IMPACT_DELAY);
-  return {k,die,code,o,notes:notes.filter(Boolean),adv,side,killed};
+  return r.result;
 }
 async function advance(uid){
   const r=sel.result;if(!r||busy)return;const u=U(uid);
