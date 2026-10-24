@@ -8,6 +8,7 @@ import {
   ZOOM_MAX,ZOOM_STEP,ZOOM_INIT_MIN,ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
 } from './config.js';
 import { key, unkey, DE, DO, neighbors, dist, ek } from './rules/hex.js';
+import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -18,7 +19,6 @@ const ck=k=>center(...unkey(k));
 function corners(k){const [x,y]=ck(k);const out=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);out.push([x+R*Math.cos(a),y+R*Math.sin(a)]);}return out;}
 
 
-const isMechType=t=>t==='arm'||t==='mech'||t==='td';
 function stepCost(a,b,mech){if(roadEdges.has(ek(a,b)))return ROAD_COST;let c=HEX[b].t==='forest'?(mech?FOREST_COST_MECH:FOREST_COST_INF):CLEAR_COST;if(riverEdge.has(ek(a,b)))c+=RIVER_CROSSING_COST;return c;}
 
 /* ---------- Règles ---------- */
@@ -29,11 +29,7 @@ const goodFor=c=>c==='A1'?'bad':c==='NE'?'':'good';
 let state=null, busy=false, undo=[], sel={}, zoom=1;
 // Dés de combat : Math.random conservé pour garder la séquence de tirages d'origine
 const diceRng=Math.random;
-const other=s=>s==='de'?'us':'de';
 const isAI=s=>state&&((state.mode==='ai-us'&&s==='us')||(state.mode==='ai-de'&&s==='de'));
-const onMap=u=>!u.dead&&!!u.pos;
-const vals=u=>u.steps>=u.max?u.v:u.rv;
-const isMech=u=>isMechType(u.type);
 const U=id=>state.units.find(u=>u.id===id);
 const unitsAt=k=>state.units.filter(u=>onMap(u)&&u.pos===k);
 const occ=side=>new Set(state.units.filter(u=>onMap(u)&&u.side===side).map(u=>u.pos));
@@ -71,8 +67,6 @@ function supplyPath(side,from){
     for(const n of neighbors(h))if(!par.has(n)&&ok(n)&&supCross(h,n)){par.set(n,h);q.push(n);}}
   return null;
 }
-const atkOf=u=>(u.oos||0)>=OOS_CUT?Math.max(1,Math.floor(vals(u)[0]/2)):vals(u)[0];
-const mpOf=u=>(u.oos||0)>=OOS_ISOLATED?Math.ceil(vals(u)[2]/2):vals(u)[2];
 function checkSupply(side){
   const ok=supplyOf(side),news=[];
   for(const u of state.units){
