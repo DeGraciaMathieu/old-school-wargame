@@ -26,18 +26,18 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/rules/combat.js` | `eligibleAttackers`, `canTarget`, `odds`, `resolveCombat` | control, occupation, journal |
 | `src/rules/turn.js` | `beginPhase`, `nextPhase`, `freeHexNear` | supply, control, occupation |
 | `src/rules/rng.js` | `createRng(seed)` (tests) | — |
-| `src/state/store.js` | `store` `{state, busy, undo, sel, zoom}`, `isAI`, `U`, enveloppes de requêtes, `log`, `save`, `loadSaved`, `createGame` | rules |
+| `src/state/store.js` | `store` `{state, busy, undo, sel, zoom, scoreOpen}`, `isAI`, `U`, enveloppes de requêtes, `log`, `save`, `loadSaved`, `createGame` | rules |
 | `src/render/geometry.js` | `SVGW`, `SVGH`, `center`, `ck`, `corners`, `POLY` | hex, map |
 | `src/render/labels.js` | `turnLabel`, `goodFor`, `esc` | config |
 | `src/render/map.js` | `drawStatic`, `renderMap`, `counter`, `counterIcon`, `fx`, `impact`, `animatePath`, `applyZoom`, `LIVE_CUT`, `pocketsSvg` | geometry, store |
 | `src/render/panel.js` | `renderPanel`, `hexBlock`, `combatBlock`, `resultBlock`, `unitMeta` | map, store |
-| `src/render/hud.js` | `renderTrack`, `renderScore`, `renderAct`, `pulseScore` | store |
+| `src/render/hud.js` | `renderTrack`, `renderScore` (badge de PV dépliable), `renderAct`, `pulseScore`, `scoreEl` | store |
 | `src/render/sheets.js` | `openModal`, `closeModal`, `modeButtons`, `startScreen`, `rulesScreen` | store |
 | `src/render/index.js` | `render()` : piste, carte, score, barre d'action, panneau | render/* |
 | `src/render/audio.js` | `AUDIO` (Web Audio synthétisé, préférences dans `localStorage`) | store (lecture de la phase) |
 | `src/input/map.js` | `onHex` + écouteur de clic sur le SVG | loop/orders, store |
 | `src/input/actions.js` | `onAction` (`data-act` : end, undo, unit, toggle, attack, advance, cancel), `confirmEndCombat` | loop, render/sheets |
-| `src/input/controls.js` | Fenêtres (`data-mode`, `data-resume`, `data-rules`, `data-end-confirm`, `data-close`), Échap, zoom, son, `syncSound` | loop, render |
+| `src/input/controls.js` | Dépliage du badge de PV (`store.scoreOpen`), fenêtres (`data-mode`, `data-resume`, `data-rules`, `data-end-confirm`, `data-close`), Échap, zoom, son, `syncSound` | loop, render |
 | `src/loop/turn.js` | `newGame`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
 | `src/loop/orders.js` | `useDice`, `doMove`, `undoMove`, `selectUnit`, `placeUnit`, `resolve`, `advance`, `captureEffects` | rules/combat, render, store |
 | `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat`, `field` (Dijkstra mis en cache dans `fieldCache`) | orders, turn, store |

@@ -3,6 +3,7 @@ import { fieldCache, runAI } from '../loop/ai.js';
 import { endPhase, newGame } from '../loop/turn.js';
 import { AUDIO } from '../render/audio.js';
 import { render } from '../render/index.js';
+import { renderScore, scoreEl } from '../render/hud.js';
 import { applyZoom } from '../render/map.js';
 import { closeModal, modal, rulesScreen, sheet, startScreen } from '../render/sheets.js';
 import { isAI, loadSaved, store } from '../state/store.js';
@@ -18,6 +19,7 @@ sheet.addEventListener('click',e=>{
 document.getElementById('btnRules').addEventListener('click',rulesScreen);
 document.addEventListener('keydown',e=>{if(e.key!=='Escape'||modal.hidden)return;const c=sheet.querySelector('[data-close]');if(c){e.preventDefault();c.click();}});
 document.getElementById('btnNew').addEventListener('click',()=>{if(!store.busy)startScreen();});
+scoreEl.addEventListener('click',e=>{if(!e.target.closest('.vpsum'))return;store.scoreOpen=!store.scoreOpen;renderScore();});
 document.getElementById('zin').addEventListener('click',()=>{store.zoom=Math.min(ZOOM_MAX,store.zoom*ZOOM_STEP);applyZoom();});
 document.getElementById('zout').addEventListener('click',()=>{store.zoom=Math.max(ZOOM_MIN,store.zoom/ZOOM_STEP);applyZoom();});
 ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,()=>AUDIO.init(),{capture:true,passive:true}));

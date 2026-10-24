@@ -154,7 +154,10 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .legend b.r{flex:none;min-width:42px;text-align:center;padding:2px 4px;font-family:var(--f-cond);border:1px solid var(--line)}
 
 /* Score en direct sur la carte */
-.mapscore{position:absolute;left:10px;top:10px;display:flex;align-items:center;gap:10px;padding:6px 12px 6px 10px;background:rgba(27,30,28,.92);border:1px solid var(--line);pointer-events:none}
+.mapscore{position:absolute;left:10px;top:10px;max-width:calc(100% - 20px);padding:6px 12px 6px 10px;background:rgba(27,30,28,.92);border:1px solid var(--line)}
+.mapscore .vpsum{display:flex;align-items:center;gap:10px;padding:0;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.mapscore .chev{color:var(--amber);font-size:16px;line-height:1}
+.mapscore .vpdetail{width:260px;max-width:100%;padding:2px 0 4px}
 .mapscore b{font-family:var(--f-display);font-size:30px;line-height:1;color:var(--de);font-variant-numeric:tabular-nums}
 .mapscore .lbl{font-family:var(--f-cond);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);line-height:1.25}
 .mapscore .lbl em{display:block;font-style:normal;font-size:14px;font-weight:600;letter-spacing:.02em;text-transform:none;color:var(--ink)}

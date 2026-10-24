@@ -1,10 +1,10 @@
-import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TOWNS, TURNS, VP_DRAW, VP_GERMAN_WIN, VP_TOTAL, OOS_ISOLATED } from '../config.js';
+import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TOWNS, TURNS, OOS_ISOLATED } from '../config.js';
 import { ek, neighbors } from '../rules/hex.js';
 import { HEX, riverEdge } from '../rules/map.js';
 import { atkOf, other, vals } from '../rules/units.js';
 import { esc, turnLabel } from './labels.js';
 import { LIVE_CUT, counterIcon } from './map.js';
-import { U, bondsOf, eligibleAttackers, isAI, odds, store, supplyPath, unitsAt, vpOf } from '../state/store.js';
+import { U, bondsOf, eligibleAttackers, isAI, odds, store, supplyPath, unitsAt } from '../state/store.js';
 
 /* ---------- Rendu du panneau ---------- */
 export const panel=document.getElementById('panel');
@@ -62,10 +62,6 @@ export function renderPanel(){
   if(store.sel.result)s+=resultBlock(ph);
   else if(store.sel.target&&!ai)s+=combatBlock(ph);
   else if(store.sel.hex)s+=hexBlock(store.sel.hex,ph);
-  const vp=vpOf('de');
-  s+=`<div class="box"><span class="eyebrow">Points de victoire allemands</span><h3 style="margin-bottom:0">${vp} / ${VP_TOTAL}</h3><div class="vpbar"><i style="width:${vp/VP_TOTAL*100}%"></i><u style="left:${VP_DRAW/VP_TOTAL*100}%"></u><u style="left:${VP_GERMAN_WIN/VP_TOTAL*100}%"></u></div><div class="vplegend"><span>Victoire US ≤ 2</span><span>Nul 3–4</span><span>Victoire allemande ≥ 5</span></div><ul class="towns">`;
-  for(const id in TOWNS)if(TOWNS[id].vp)s+=`<li><span class="dot ${store.state.control[id]}"></span>${TOWNS[id].name}<em>${TOWNS[id].vp} PV</em></li>`;
-  s+='</ul></div>';
   const next=ARRIVALS.filter(a=>a.turn>store.state.turn||(a.turn===store.state.turn&&store.state.phase<(a.side==='de'?0:2)));
   if(next.length)s+=`<div class="box"><span class="eyebrow">Renforts à venir</span><ul class="reinf">${next.map(a=>`<li>Tour ${a.turn} (${turnLabel(a.turn)}) : ${a.text}</li>`).join('')}</ul></div>`;
   panel.innerHTML=s;

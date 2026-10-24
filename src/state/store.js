@@ -8,7 +8,7 @@ import * as supply from '../rules/supply.js';
 import * as victory from '../rules/victory.js';
 
 // État de la partie et état d'interface partagés entre les couches
-export const store={state:null,busy:false,undo:[],sel:{},zoom:1};
+export const store={state:null,busy:false,undo:[],sel:{},zoom:1,scoreOpen:false};
 export const isAI=s=>store.state&&((store.state.mode==='ai-us'&&s==='us')||(store.state.mode==='ai-de'&&s==='de'));
 export const U=id=>store.state.units.find(u=>u.id===id);
 export const unitsAt=k=>control.unitsAt(store.state,k);

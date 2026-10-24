@@ -58,7 +58,8 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
 - La partie vit dans `store.state` : `{mode, turn, phase, control, attacked, log, over, units}`.
   Une unité porte `id, side, name, div, type, v, rv, max, steps, pos, arrived, mp, attacked,
   dead, oos` (+ `turn`, `entry` pour les renforts).
-- L'état d'interface vit à côté : `store.busy`, `store.undo`, `store.sel`, `store.zoom`.
+- L'état d'interface vit à côté : `store.busy`, `store.undo`, `store.sel`, `store.zoom`,
+  `store.scoreOpen` (badge de PV déplié).
 - Côté `loop/`, après une transition : `store.state = r.state`, puis effets (son, FX,
   `render()`, `save()`). Les objets unité changent d'identité à chaque transition : référencer
   les unités par `id` (`U(id)`), jamais par un objet gardé d'une phase à l'autre.
@@ -82,7 +83,8 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
 - Le jeu n'a qu'un thème sombre (« table de jeu sombre, carte d'état-major papier ») défini
   dans `styles.css`. Pas de thème clair.
 - Les textes de règles affichés au joueur sont écrits à la main dans `render/sheets.js`
-  (`rulesScreen`, `startScreen`), `render/panel.js` (`hexBlock`, légende des PV) et
+  (`rulesScreen`, `startScreen`), `render/panel.js` (`hexBlock`), `render/hud.js` (légende des PV
+  du badge de score, `renderScore`) et
   `loop/turn.js` (`endGame`). **Toute modification d'une règle doit mettre à jour ces
   textes.** La table CRT et la légende des résultats sont générées depuis `COLL`, `CRT` et
   `RES`.

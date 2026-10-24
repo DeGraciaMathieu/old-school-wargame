@@ -27,7 +27,7 @@ auto_invoke: true
 | Fin de partie | `endGame()` — `src/loop/turn.js` | Après la dernière phase du tour `TURNS` |
 | Sauvegarde | `save()` / `loadSaved()` — `src/state/store.js`, clé `SAVE_KEY` | État brut en JSON ; une partie terminée n'est pas proposée à la reprise |
 | Journal | `state.log` (au plus `LOG_MAX`), `pushLog` — `src/rules/journal.js` | `{t,text,side}`, entrées en tête |
-| Affichage | `drawStatic` (une seule fois) et `renderMap` — `src/render/map.js` ; `renderTrack`, `renderScore` — `src/render/hud.js` ; `renderPanel` | — |
+| Affichage | `drawStatic` (une seule fois) et `renderMap` — `src/render/map.js` ; `renderTrack`, `renderScore` (badge de score dépliable : barre, seuils, villes à PV ; ouvert si `store.scoreOpen`) — `src/render/hud.js` ; `renderPanel` | — |
 
 ## Ajouter une unité ou un renfort
 
@@ -46,7 +46,7 @@ auto_invoke: true
 2. La carte change : mettre à jour l'empreinte de `tests/map.test.js` **seulement** si c'est
    voulu, et vérifier les autres tests qui s'appuient sur des cases précises.
 3. Ville à PV : ajuster `VP_TOTAL` (non calculé) et les textes en dur de `rulesScreen`,
-   `endGame` et la légende de la barre de PV (`renderPanel`).
+   `endGame` et la légende de la barre de PV (`renderScore`, `src/render/hud.js`).
 4. `npm test`, puis vérification visuelle.
 
 ## Modifier les conditions de victoire
@@ -54,5 +54,5 @@ auto_invoke: true
 1. `VP_GERMAN_WIN` / `VP_DRAW` dans `src/config.js`, logique dans `outcome` (`src/rules/victory.js`).
 2. `tests/victory.test.js`.
 3. Textes en dur à aligner : `rulesScreen` et `startScreen` (`src/render/sheets.js`),
-   `endGame` (`src/loop/turn.js`), légende `vplegend` (`src/render/panel.js`).
+   `endGame` (`src/loop/turn.js`), légende `vplegend` de `renderScore` (`src/render/hud.js`).
 4. `npm test`.

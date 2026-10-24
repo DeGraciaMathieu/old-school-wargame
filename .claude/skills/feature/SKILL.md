@@ -43,7 +43,7 @@ Demande : $ARGUMENTS
 ## 4. Mettre à jour la documentation
 
 - Textes de règles affichés : `rulesScreen` / `startScreen` (`src/render/sheets.js`),
-  `hexBlock` et la légende des PV (`src/render/panel.js`), `endGame` (`src/loop/turn.js`).
+  `hexBlock` (`src/render/panel.js`), la légende des PV de `renderScore` (`src/render/hud.js`), `endGame` (`src/loop/turn.js`).
 - `CLAUDE.md` et les skills si une convention, un module ou un concept a bougé.
 - `docs/decisions.md` : nouvelle question ouverte, ou comportement volontairement conservé.
 - `README.md` si les commandes ou l'organisation changent.

@@ -21,8 +21,8 @@ description: Vérification légère des conventions du projet, de la cohérence 
 - V4 — Langue et style : français, style compact du fichier.
 - V5 — Tests : chaque règle modifiée dans `src/rules/` a un test touché ou ajouté dans `tests/`.
 - V6 — Documentation : si une valeur ou une règle affichée a changé, les textes de
-  `rulesScreen` / `startScreen` (`src/render/sheets.js`), `hexBlock` et la légende des PV
-  (`src/render/panel.js`), `endGame` (`src/loop/turn.js`) sont à jour.
+  `rulesScreen` / `startScreen` (`src/render/sheets.js`), `hexBlock` (`src/render/panel.js`),
+  la légende des PV de `renderScore` (`src/render/hud.js`), `endGame` (`src/loop/turn.js`) sont à jour.
 
 ## 3. Lancer les tests
 
