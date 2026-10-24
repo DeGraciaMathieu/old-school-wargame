@@ -1,3 +1,4 @@
+import { BOND_RANGE } from '../config.js';
 import { neighbors, dist } from './hex.js';
 import { other, onMap } from './units.js';
 
@@ -10,7 +11,7 @@ export function bondsOf(state,side){
   const mine=occ(state,side),foe=occ(state,other(side)),out=new Map(),done=new Set();
   for(const a of mine){const na=neighbors(a);
     for(const m of na)for(const b of neighbors(m)){
-      if(!mine.has(b)||dist(a,b)!==2)continue;
+      if(!mine.has(b)||dist(a,b)!==BOND_RANGE)continue;
       const id=a<b?a+'|'+b:b+'|'+a;if(done.has(id))continue;done.add(id);
       const nb=neighbors(b),common=na.filter(h=>nb.includes(h));
       if(common.some(h=>foe.has(h)))continue;

@@ -35,6 +35,8 @@ export const TERRAIN={clear:'Dégagé',forest:'Forêt',town:'Village',city:'Vill
 /* ---------- Mouvement ---------- */
 export const ROAD_COST=0.5, FOREST_COST_MECH=3, FOREST_COST_INF=2, CLEAR_COST=1, RIVER_CROSSING_COST=2;
 export const STACK_LIMIT=2;
+// Liaison : deux unités amies à cette distance tiennent les cases qui les séparent
+export const BOND_RANGE=2;
 
 /* ---------- Ordre de bataille ---------- */
 export const DEFAULT_STEPS=2;
@@ -108,10 +110,19 @@ export const VP_GERMAN_WIN=5, VP_DRAW=3, VP_TOTAL=11;
 export const AI_US_SLOTS=[['bastogne',2],['wiltz',1],['houffalize',1],['noville',1],['longvilly',1],['clervaux',1],['hosingen',1]];
 export const AI_DE_CAP_BASTOGNE=6, AI_DE_CAP_OTHER=3, AI_DE_VP_WEIGHT=1.2;
 export const AI_COMBAT_GUARD=30;
+// Déplacement : malus de terrain couvert pour les Américains, poids de la ZOC ennemie, gain minimal pour bouger
+export const AI_US_COVER_BONUS=-0.4, AI_ZOC_WEIGHT_DE=-0.2, AI_ZOC_WEIGHT_US=0.6, AI_MOVE_MIN_GAIN=0.01;
+// Combat (indices de colonne de la CRT) : à partir de 5:1 on retire des attaquants tant que le rapport reste à 4:1
+export const AI_PRUNE_FROM_COL=6, AI_PRUNE_KEEP_COL=5;
+// Colonne minimale pour attaquer : Allemands contre une ville à PV / ailleurs ; Américains pour reprendre une ville / ailleurs
+export const AI_MIN_COL_DE_VP=2, AI_MIN_COL_DE=3, AI_MIN_COL_US_RETAKE=3, AI_MIN_COL_US=4;
+export const AI_COMBAT_COL_WEIGHT=2;
 
 /* ---------- Rythme (ms) ---------- */
 export const AI_START_DELAY=450, AI_END_PHASE_DELAY=300, AI_MOVE_PAUSE=90, AI_TARGET_PAUSE=650, AI_RESULT_PAUSE=1500, AI_ADVANCE_PAUSE=250;
 export const SUPPLY_FX_DELAY=350, SUPPLY_FX_STAGGER=180, CAPTURE_FX_DELAY=120, IMPACT_DELAY=550;
+// Son (secondes) : décalage du barrage d'aube, du convoi de renforts au premier mouvement et aux suivants
+export const AUDIO_BARRAGE_DELAY=0.7, AUDIO_CONVOY_DELAY_DAWN=2.6, AUDIO_CONVOY_DELAY=0.9;
 export const FX_LIFETIME=1800, BLAST_LIFETIME=900, MOVE_MS_PER_HEX=140, MOVE_ANIM_FALLBACK=400;
 
 /* ---------- Interface ---------- */

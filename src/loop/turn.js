@@ -1,4 +1,4 @@
-import { AI_START_DELAY, PHASES, SIDE, SUPPLY_FX_DELAY, SUPPLY_FX_STAGGER, TOWNS } from '../config.js';
+import { AI_START_DELAY, AUDIO_BARRAGE_DELAY, AUDIO_CONVOY_DELAY, AUDIO_CONVOY_DELAY_DAWN, PHASES, SIDE, SUPPLY_FX_DELAY, SUPPLY_FX_STAGGER, TOWNS } from '../config.js';
 import * as turn from '../rules/turn.js';
 import * as victory from '../rules/victory.js';
 import { runAI } from './ai.js';
@@ -17,12 +17,12 @@ export function newGame(mode){
 function startPhase(){
   const ph=PHASES[store.state.phase];
   AUDIO.radio(ph.side);
-  if(store.state.phase===0)AUDIO.barrage(0.7,store.state.turn===1);
+  if(store.state.phase===0)AUDIO.barrage(AUDIO_BARRAGE_DELAY,store.state.turn===1);
   const r=turn.beginPhase(store.state);
   store.state=r.state;
   if(r.news.length)setTimeout(()=>r.news.forEach(([k,t,c],i)=>setTimeout(()=>fx(k,t,c),i*SUPPLY_FX_STAGGER)),SUPPLY_FX_DELAY);
   for(const c of r.captures)captureEffects(c.id,c.side);
-  if(r.arrived)AUDIO.convoy(store.state.phase===0?2.6:0.9);
+  if(r.arrived)AUDIO.convoy(store.state.phase===0?AUDIO_CONVOY_DELAY_DAWN:AUDIO_CONVOY_DELAY);
   store.undo=[];store.sel={};render();save();
   if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);
 }

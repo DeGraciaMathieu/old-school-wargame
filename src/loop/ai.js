@@ -1,4 +1,4 @@
-import { AI_ADVANCE_PAUSE, AI_COMBAT_GUARD, AI_DE_CAP_BASTOGNE, AI_DE_CAP_OTHER, AI_DE_VP_WEIGHT, AI_END_PHASE_DELAY, AI_MOVE_PAUSE, AI_RESULT_PAUSE, AI_TARGET_PAUSE, AI_US_SLOTS, PHASES, TOWNS } from '../config.js';
+import { AI_ADVANCE_PAUSE, AI_COMBAT_GUARD, AI_DE_CAP_BASTOGNE, AI_DE_CAP_OTHER, AI_DE_VP_WEIGHT, AI_END_PHASE_DELAY, AI_MOVE_PAUSE, AI_RESULT_PAUSE, AI_TARGET_PAUSE, AI_US_SLOTS, PHASES, TOWNS, AI_US_COVER_BONUS, AI_ZOC_WEIGHT_DE, AI_ZOC_WEIGHT_US, AI_MOVE_MIN_GAIN, AI_PRUNE_FROM_COL, AI_PRUNE_KEEP_COL, AI_MIN_COL_DE_VP, AI_MIN_COL_DE, AI_MIN_COL_US_RETAKE, AI_MIN_COL_US, AI_COMBAT_COL_WEIGHT } from '../config.js';
 import { neighbors } from '../rules/hex.js';
 import { HEX, townKey } from '../rules/map.js';
 import { isMech, onMap, other, vals } from '../rules/units.js';
@@ -52,8 +52,8 @@ async function aiMove(side){
   for(const u of order){
     if(!onMap(u)||u.mp<=0)continue;
     const g=goals.get(u.id),f=field(g,isMech(u)),rch=reach(u);
-    const score=(k,zoc)=>f.get(k)+(side==='us'&&HEX[k].t!=='clear'?-0.4:0)+(zoc?(side==='de'?-0.2:0.6):0);
-    let bestK=null,bs=score(u.pos,false)-0.01;
+    const score=(k,zoc)=>f.get(k)+(side==='us'&&HEX[k].t!=='clear'?AI_US_COVER_BONUS:0)+(zoc?(side==='de'?AI_ZOC_WEIGHT_DE:AI_ZOC_WEIGHT_US):0);
+    let bestK=null,bs=score(u.pos,false)-AI_MOVE_MIN_GAIN;
     for(const [k,r] of rch){const s=score(k,r.zoc);if(s<bs){bs=s;bestK=k;}}
     if(bestK){await doMove(u,bestK,rch.get(bestK));await sleep(AI_MOVE_PAUSE);}
   }
@@ -65,11 +65,11 @@ async function aiCombat(side){
     let best=null;
     for(const k of targets){
       let atk=eligibleAttackers(k,side);let o=odds(k,atk);if(o.fin<0)continue;
-      if(o.fin>=6){atk.sort((a,b)=>vals(a)[0]-vals(b)[0]);let i=0;while(atk.length>1&&i<atk.length){const t=atk.filter((_,j)=>j!==i);const ot=odds(k,t);if(ot.fin>=5){atk=t;o=ot;}else i++;}}
+      if(o.fin>=AI_PRUNE_FROM_COL){atk.sort((a,b)=>vals(a)[0]-vals(b)[0]);let i=0;while(atk.length>1&&i<atk.length){const t=atk.filter((_,j)=>j!==i);const ot=odds(k,t);if(ot.fin>=AI_PRUNE_KEEP_COL){atk=t;o=ot;}else i++;}}
       const vp=HEX[k].town?TOWNS[HEX[k].town].vp:0;
-      const need=side==='de'?(vp>0?2:3):(vp>0&&store.state.control[HEX[k].town]==='de'?3:4);
+      const need=side==='de'?(vp>0?AI_MIN_COL_DE_VP:AI_MIN_COL_DE):(vp>0&&store.state.control[HEX[k].town]==='de'?AI_MIN_COL_US_RETAKE:AI_MIN_COL_US);
       if(o.fin<need)continue;
-      const sc=o.fin*2+vp+(o.defs.some(d=>d.steps<d.max)?1:0);
+      const sc=o.fin*AI_COMBAT_COL_WEIGHT+vp+(o.defs.some(d=>d.steps<d.max)?1:0);
       if(!best||sc>best.sc)best={k,atk,sc};
     }
     if(!best)break;
