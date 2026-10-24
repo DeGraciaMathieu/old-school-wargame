@@ -12,6 +12,7 @@ import * as movement from './rules/movement.js';
 import * as control from './rules/control.js';
 import * as supply from './rules/supply.js';
 import * as combat from './rules/combat.js';
+import * as victory from './rules/victory.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -52,7 +53,7 @@ function checkSupply(side){
   }
   if(news.length)setTimeout(()=>news.forEach(([k,t,c],i)=>setTimeout(()=>fx(k,t,c),i*SUPPLY_FX_STAGGER)),SUPPLY_FX_DELAY);
 }
-const vpOf=side=>Object.keys(TOWNS).reduce((s,id)=>s+(state.control[id]===side?TOWNS[id].vp:0),0);
+const vpOf=side=>victory.vpOf(state,side);
 
 function log(text,side){state.log.unshift({t:state.turn,text,side:side||''});if(state.log.length>LOG_MAX)state.log.length=LOG_MAX;}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(e){}}
@@ -66,7 +67,7 @@ function newGame(mode){
   undo=[];sel={};closeModal();startPhase();
 }
 
-function placeUnit(u,k){u.pos=k;const id=HEX[k].town;if(id&&!unitsAt(k).some(x=>x.side!==u.side)){const prev=state.control[id];state.control[id]=u.side;if(prev!==u.side)captured(id,u.side);}}
+function placeUnit(u,k){u.pos=k;const id=victory.townTakenBy(state,u.side,k);if(id){const prev=state.control[id];state.control[id]=u.side;if(prev!==u.side)captured(id,u.side);}}
 function captured(id,side){
   const t=TOWNS[id];AUDIO.stamp();
   log(`<b>${t.name}</b> passe aux mains des ${SIDE[side].toLowerCase()}${t.vp?` : ${side==='de'?'+':'−'}${t.vp} PV allemands, total ${vpOf('de')}`:''}.`,side);
@@ -107,7 +108,7 @@ function endPhase(){
 function endGame(){
   state.over=true;save();render();AUDIO.end();
   const vp=vpOf('de');
-  const verdict=vp>=VP_GERMAN_WIN?['Victoire allemande','La route de la Meuse est ouverte.']:vp>=VP_DRAW?['Match nul','Le front tient, mais il a cédé du terrain précieux.']:['Victoire américaine','Le saillant est contenu, Bastogne et les carrefours tiennent.'];
+  const verdict={de:['Victoire allemande','La route de la Meuse est ouverte.'],draw:['Match nul','Le front tient, mais il a cédé du terrain précieux.'],us:['Victoire américaine','Le saillant est contenu, Bastogne et les carrefours tiennent.']}[victory.outcome(vp)];
   const lines=Object.keys(TOWNS).filter(id=>TOWNS[id].vp).map(id=>`<li><span class="dot ${state.control[id]}"></span>${TOWNS[id].name}<em>${TOWNS[id].vp} PV · ${SIDE[state.control[id]]}</em></li>`).join('');
   openModal(`<h2>${verdict[0]}</h2><p>${verdict[1]}</p><p>Points de victoire allemands : <b>${vp}</b> (victoire allemande à partir de 5, nul à 3 ou 4).</p><ul class="towns">${lines}</ul><div class="choices">${modeButtons()}</div>`);
 }
@@ -592,7 +593,7 @@ function renderTrack(){
 }
 const scoreEl=document.getElementById('mapscore');
 function renderScore(){
-  const vp=vpOf('de'),st=vp>=VP_GERMAN_WIN?['victoire allemande','de']:vp>=VP_DRAW?['match nul','mid']:['victoire américaine','us'];
+  const vp=vpOf('de'),st={de:['victoire allemande','de'],draw:['match nul','mid'],us:['victoire américaine','us']}[victory.outcome(vp)];
   scoreEl.innerHTML=`<b>${vp}</b><span class="lbl">PV allemands sur ${VP_TOTAL}<em class="${st[1]}">${state.over?'Résultat':'Tendance'} : ${st[0]}</em></span>`;
 }
 const actEl=document.getElementById('mapact');
