@@ -8,24 +8,14 @@ import {
   SUPPLY_FX_DELAY,SUPPLY_FX_STAGGER,CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,MOVE_MS_PER_HEX,MOVE_ANIM_FALLBACK,
   SAVE_KEY,AUDIO_PREF_KEY,LOG_MAX,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,ZOOM_INIT_MIN,ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
 } from './config.js';
+import { key, unkey, DE, DO, neighbors, dist, hexLine, ek } from './rules/hex.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
 const SQ3=Math.sqrt(3), HW=SQ3*R;
 const SVGW=Math.round(PAD*2+HW*(COLS+0.5)), SVGH=Math.round(PAD*2+2*R+1.5*R*(ROWS-1));
-const key=(c,r)=>c+','+r, unkey=k=>k.split(',').map(Number);
 const center=(c,r)=>[PAD+HW/2+HW*(c+0.5*(r&1)), PAD+R+1.5*R*r];
 const ck=k=>center(...unkey(k));
-const inMap=(c,r)=>c>=0&&c<COLS&&r>=0&&r<ROWS;
-const DE=[[1,0],[0,-1],[-1,-1],[-1,0],[-1,1],[0,1]], DO=[[1,0],[1,-1],[0,-1],[-1,0],[0,1],[1,1]];
-const NB={};
-function neighbors(k){ if(NB[k])return NB[k]; const [c,r]=unkey(k); const out=[]; for(const [dc,dr] of (r&1?DO:DE)){ if(inMap(c+dc,r+dr)) out.push(key(c+dc,r+dr)); } return NB[k]=out; }
-const toCube=(c,r)=>{const x=c-(r-(r&1))/2;return [x,-x-r,r];};
-const fromCube=(x,y,z)=>[x+(z-(z&1))/2,z];
-function dist(a,b){const A=toCube(...unkey(a)),B=toCube(...unkey(b));return Math.max(Math.abs(A[0]-B[0]),Math.abs(A[1]-B[1]),Math.abs(A[2]-B[2]));}
-function cubeRound(x,y,z){let rx=Math.round(x),ry=Math.round(y),rz=Math.round(z);const dx=Math.abs(rx-x),dy=Math.abs(ry-y),dz=Math.abs(rz-z);if(dx>dy&&dx>dz)rx=-ry-rz;else if(dy>dz)ry=-rx-rz;else rz=-rx-ry;return [rx,ry,rz];}
-function hexLine(a,b){const n=dist(a,b),A=toCube(...unkey(a)),B=toCube(...unkey(b)),out=[];for(let i=0;i<=n;i++){const t=n?i/n:0;const p=cubeRound(A[0]+(B[0]-A[0])*t+1e-6,A[1]+(B[1]-A[1])*t+1e-6,A[2]+(B[2]-A[2])*t-2e-6);out.push(key(...fromCube(...p)));}return out;}
 function corners(k){const [x,y]=ck(k);const out=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);out.push([x+R*Math.cos(a),y+R*Math.sin(a)]);}return out;}
-const ek=(a,b)=>a<b?a+'|'+b:b+'|'+a;
 
 /* ---------- Carte ---------- */
 function mulberry(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
