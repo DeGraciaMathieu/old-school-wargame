@@ -211,6 +211,12 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .blast{fill:rgba(227,169,61,.55);stroke:#b8341b;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:blast .75s ease-out forwards}
 .blast.big{fill:rgba(212,89,63,.6)}
 @keyframes blast{from{transform:scale(.15);opacity:1}to{transform:scale(1.5);opacity:0}}
+@media (min-width:901px){
+  .app{max-width:none;height:100dvh;padding-block:14px}
+  .board{flex:1;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
+  .mapscroll{height:100%}
+  .panel{max-height:none}
+}
 @media (max-width:900px){
   .board{grid-template-columns:minmax(0,1fr)}
   .mapscroll{height:58vh}
