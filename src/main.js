@@ -10,6 +10,7 @@ import { key, unkey, DE, DO, neighbors, dist, ek } from './rules/hex.js';
 import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
 import { stepCost } from './rules/movement.js';
 import * as control from './rules/control.js';
+import * as supply from './rules/supply.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -36,25 +37,8 @@ const occ=side=>control.occ(state,side);
 const stackCount=(k,side,except)=>control.stackCount(state,k,side,except);
 const zocOf=side=>control.zocOf(state,side);
 const bondsOf=side=>control.bondsOf(state,side);
-/* Ravitaillement : chemin jusqu'à son bord de carte, hors cases ennemies et hors ZOC ennemie (sauf case tenue par un ami) */
-function supplyOf(side){
-  const own=occ(side),enemy=occ(other(side)),ez=zocOf(other(side));
-  const ok=h=>!enemy.has(h)&&(!ez.has(h)||own.has(h));
-  const col=side==='us'?0:COLS-1,seen=new Set(),q=[];
-  for(let r=0;r<ROWS;r++){const h=key(col,r);if(ok(h)){seen.add(h);q.push(h);}}
-  while(q.length){const h=q.pop();for(const n of neighbors(h))if(!seen.has(n)&&ok(n)&&supCross(h,n)){seen.add(n);q.push(n);}}
-  return seen;
-}
-const supCross=(a,b)=>!riverEdge.has(ek(a,b))||roadEdges.has(ek(a,b));
-function supplyPath(side,from){
-  const own=occ(side),enemy=occ(other(side)),ez=zocOf(other(side)),col=side==='us'?0:COLS-1;
-  const ok=h=>!enemy.has(h)&&(!ez.has(h)||own.has(h));
-  const par=new Map([[from,null]]),q=[from];
-  for(let i=0;i<q.length;i++){const h=q[i];
-    if(unkey(h)[0]===col){const p=[];let x=h;while(x){p.unshift(x);x=par.get(x);}return p;}
-    for(const n of neighbors(h))if(!par.has(n)&&ok(n)&&supCross(h,n)){par.set(n,h);q.push(n);}}
-  return null;
-}
+const supplyOf=side=>supply.supplyOf(state,side);
+const supplyPath=(side,from)=>supply.supplyPath(state,side,from);
 function checkSupply(side){
   const ok=supplyOf(side),news=[];
   for(const u of state.units){
