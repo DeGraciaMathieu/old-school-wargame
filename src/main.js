@@ -1,16 +1,17 @@
 import {
-  R,COLS,ROWS,PAD,TOWNS,TERRAIN,STACK_LIMIT,DEFAULT_STEPS,OOB,ARRIVALS,PHASES,SIDE,TURNS,FIRST_DAY,COLL,TH,CRT,RES,
-  DIE_SIDES,SHIFT_FOREST,SHIFT_TOWN,SHIFT_CITY,SHIFT_RIVER,SHIFT_ARMOR_CLEAR,OOS_CUT,OOS_ISOLATED,VP_GERMAN_WIN,
-  VP_DRAW,VP_TOTAL,AI_US_SLOTS,AI_DE_CAP_BASTOGNE,AI_DE_CAP_OTHER,AI_DE_VP_WEIGHT,AI_COMBAT_GUARD,AI_START_DELAY,
-  AI_END_PHASE_DELAY,AI_MOVE_PAUSE,AI_TARGET_PAUSE,AI_RESULT_PAUSE,AI_ADVANCE_PAUSE,SUPPLY_FX_DELAY,SUPPLY_FX_STAGGER,
-  CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,MOVE_MS_PER_HEX,MOVE_ANIM_FALLBACK,SAVE_KEY,AUDIO_PREF_KEY,
-  LOG_MAX,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,ZOOM_INIT_MIN,ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
+  R,COLS,ROWS,PAD,TOWNS,TERRAIN,STACK_LIMIT,DEFAULT_STEPS,OOB,ARRIVALS,PHASES,SIDE,TURNS,FIRST_DAY,COLL,CRT,RES,
+  DIE_SIDES,OOS_CUT,OOS_ISOLATED,VP_GERMAN_WIN,VP_DRAW,VP_TOTAL,AI_US_SLOTS,AI_DE_CAP_BASTOGNE,AI_DE_CAP_OTHER,
+  AI_DE_VP_WEIGHT,AI_COMBAT_GUARD,AI_START_DELAY,AI_END_PHASE_DELAY,AI_MOVE_PAUSE,AI_TARGET_PAUSE,AI_RESULT_PAUSE,
+  AI_ADVANCE_PAUSE,SUPPLY_FX_DELAY,SUPPLY_FX_STAGGER,CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,
+  MOVE_MS_PER_HEX,MOVE_ANIM_FALLBACK,SAVE_KEY,AUDIO_PREF_KEY,LOG_MAX,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,
+  ZOOM_INIT_MIN,ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
 } from './config.js';
 import { key, unkey, DE, DO, neighbors, dist, ek } from './rules/hex.js';
 import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
 import * as movement from './rules/movement.js';
 import * as control from './rules/control.js';
 import * as supply from './rules/supply.js';
+import * as combat from './rules/combat.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -134,22 +135,9 @@ function undoMove(){
 function selectUnit(u){sel={hex:u.pos,unit:u.id,reach:u.mp>0?reach(u):new Map()};render();}
 
 /* ---------- Combat ---------- */
-function eligibleAttackers(k,side){const nb=neighbors(k);return state.units.filter(u=>onMap(u)&&u.side===side&&!u.attacked&&nb.includes(u.pos));}
-function canTarget(k,side){return !state.attacked.includes(k)&&unitsAt(k).some(u=>u.side!==side)&&eligibleAttackers(k,side).length>0;}
-function odds(k,atk){
-  const defs=unitsAt(k).filter(u=>u.side!==atk[0].side);
-  const A=atk.reduce((s,u)=>s+atkOf(u),0),D=defs.reduce((s,u)=>s+vals(u)[1],0);
-  let col=-1;for(let i=0;i<TH.length;i++)if(A>=TH[i]*D-1e-9)col=i;
-  const shifts=[];const t=HEX[k].t;
-  if(t==='forest')shifts.push(['Défenseur en forêt',SHIFT_FOREST]);
-  if(t==='town')shifts.push(['Défenseur dans un village',SHIFT_TOWN]);
-  if(t==='city')shifts.push(['Défenseur dans la ville',SHIFT_CITY]);
-  if(atk.every(a=>riverEdge.has(ek(a.pos,k))))shifts.push(['Attaque à travers une rivière',SHIFT_RIVER]);
-  if(t==='clear'&&atk.some(a=>a.type==='arm')&&!defs.some(d=>d.type==='arm'||d.type==='td'))shifts.push(['Blindés en terrain dégagé',SHIFT_ARMOR_CLEAR]);
-  const sh=shifts.reduce((s,x)=>s+x[1],0);
-  const fin=col<0?-1:Math.max(0,Math.min(CRT.length-1,col+sh));
-  return {A,D,col,shifts,fin,defs};
-}
+const eligibleAttackers=(k,side)=>combat.eligibleAttackers(state,k,side);
+const canTarget=(k,side)=>combat.canTarget(state,k,side);
+const odds=(k,atk)=>combat.odds(state,k,atk);
 function stepLoss(list){
   const alive=list.filter(u=>!u.dead);if(!alive.length)return null;
   alive.sort((a,b)=>(b.steps-a.steps)||(vals(b)[0]+vals(b)[1]-vals(a)[0]-vals(a)[1]));
