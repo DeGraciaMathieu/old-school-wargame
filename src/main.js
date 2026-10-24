@@ -52,6 +52,8 @@ const goodFor=c=>c==='A1'?'bad':c==='NE'?'':'good';
 
 /* ---------- État ---------- */
 let state=null, busy=false, undo=[], sel={}, zoom=1;
+// Dés de combat : Math.random conservé pour garder la séquence de tirages d'origine
+const diceRng=Math.random;
 const other=s=>s==='de'?'us':'de';
 const isAI=s=>state&&((state.mode==='ai-us'&&s==='us')||(state.mode==='ai-de'&&s==='de'));
 const onMap=u=>!u.dead&&!!u.pos;
@@ -250,9 +252,9 @@ function retreatUnit(u,n,enemy,fromHexes){
   if(lost)notes.push(u.dead?u.name+' est détruit pendant le repli':u.name+' perd 1 pas pendant le repli');
   return notes;
 }
-function resolve(k,atk){
+function resolve(k,atk,rng){
   const side=atk[0].side,enemy=other(side),o=odds(k,atk),alive0=state.units.filter(u=>!u.dead).length;
-  const die=1+Math.floor(Math.random()*DIE_SIDES),code=CRT[o.fin][die-1];
+  const die=1+Math.floor(rng()*DIE_SIDES),code=CRT[o.fin][die-1];
   const defs=o.defs,fromHexes=[...new Set(atk.map(a=>a.pos))];
   atk.forEach(a=>a.attacked=true);state.attacked.push(k);
   const notes=[];
@@ -347,7 +349,7 @@ async function aiCombat(side){
     }
     if(!best)break;
     sel={hex:best.k,target:best.k,attackers:new Set(best.atk.map(a=>a.id))};AUDIO.pick();render();await sleep(AI_TARGET_PAUSE);
-    const res=resolve(best.k,best.atk);
+    const res=resolve(best.k,best.atk,diceRng);
     sel={hex:best.k,result:res};render();await sleep(AI_RESULT_PAUSE);
     if(res.adv.length&&(side==='de'||HEX[best.k].town)){
       const a=res.adv.map(U).sort((x,y)=>vals(y)[0]-vals(x)[0])[0];
@@ -742,7 +744,7 @@ function onAction(e){
   else if(act==='undo')undoMove();
   else if(act==='unit'){const u=U(id);if(ph.kind==='move'&&u.side===ph.side&&!isAI(ph.side)){AUDIO.pick();selectUnit(u);}}
   else if(act==='toggle'){AUDIO.tick();if(b.checked)sel.attackers.add(id);else sel.attackers.delete(id);render();}
-  else if(act==='attack'){const atk=[...sel.attackers].map(U).filter(u=>!u.attacked);if(!atk.length)return;const r=resolve(sel.target,atk);r.fresh=true;sel={hex:r.k,result:r};render();save();}
+  else if(act==='attack'){const atk=[...sel.attackers].map(U).filter(u=>!u.attacked);if(!atk.length)return;const r=resolve(sel.target,atk,diceRng);r.fresh=true;sel={hex:r.k,result:r};render();save();}
   else if(act==='advance')advance(id);
   else if(act==='cancel'){AUDIO.tick();sel={};render();}
 }
