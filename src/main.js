@@ -1,19 +1,20 @@
 import {
   R,COLS,ROWS,PAD,TOWNS,TERRAIN,STACK_LIMIT,DEFAULT_STEPS,OOB,ARRIVALS,PHASES,SIDE,TURNS,FIRST_DAY,COLL,CRT,RES,
-  OOS_CUT,OOS_ISOLATED,VP_GERMAN_WIN,VP_DRAW,VP_TOTAL,AI_US_SLOTS,AI_DE_CAP_BASTOGNE,AI_DE_CAP_OTHER,AI_DE_VP_WEIGHT,
-  AI_COMBAT_GUARD,AI_START_DELAY,AI_END_PHASE_DELAY,AI_MOVE_PAUSE,AI_TARGET_PAUSE,AI_RESULT_PAUSE,AI_ADVANCE_PAUSE,
-  SUPPLY_FX_DELAY,SUPPLY_FX_STAGGER,CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,MOVE_MS_PER_HEX,
-  MOVE_ANIM_FALLBACK,SAVE_KEY,AUDIO_PREF_KEY,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,ZOOM_INIT_MIN,
-  ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,SHOW_POCKETS
+  VP_GERMAN_WIN,VP_DRAW,VP_TOTAL,AI_US_SLOTS,AI_DE_CAP_BASTOGNE,AI_DE_CAP_OTHER,AI_DE_VP_WEIGHT,AI_COMBAT_GUARD,
+  AI_START_DELAY,AI_END_PHASE_DELAY,AI_MOVE_PAUSE,AI_TARGET_PAUSE,AI_RESULT_PAUSE,AI_ADVANCE_PAUSE,SUPPLY_FX_DELAY,
+  SUPPLY_FX_STAGGER,CAPTURE_FX_DELAY,IMPACT_DELAY,FX_LIFETIME,BLAST_LIFETIME,MOVE_MS_PER_HEX,MOVE_ANIM_FALLBACK,
+  SAVE_KEY,AUDIO_PREF_KEY,END_COMBAT_LIST_MAX,ZOOM_MIN,ZOOM_MAX,ZOOM_STEP,ZOOM_INIT_MIN,ZOOM_INIT_MAX,MOBILE_MAX_WIDTH,
+  SHOW_POCKETS
 } from './config.js';
 import { key, unkey, DE, DO, neighbors, ek } from './rules/hex.js';
-import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
+import { other, onMap, isMech, vals, atkOf } from './rules/units.js';
 import * as movement from './rules/movement.js';
 import * as control from './rules/control.js';
 import * as supply from './rules/supply.js';
 import * as combat from './rules/combat.js';
 import * as victory from './rules/victory.js';
 import * as journal from './rules/journal.js';
+import * as turn from './rules/turn.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -42,18 +43,6 @@ const zocOf=side=>control.zocOf(state,side);
 const bondsOf=side=>control.bondsOf(state,side);
 const supplyOf=side=>supply.supplyOf(state,side);
 const supplyPath=(side,from)=>supply.supplyPath(state,side,from);
-function checkSupply(side){
-  const ok=supplyOf(side),news=[];
-  for(const u of state.units){
-    if(u.side!==side||!onMap(u))continue;
-    if(ok.has(u.pos)){if(u.oos)news.push([u.pos,'Ravitaillée','']);u.oos=0;continue;}
-    u.oos=(u.oos||0)+1;
-    if(u.oos===OOS_CUT){news.push([u.pos,'Coupée','bad']);log(`${u.name} est coupée de ses lignes.`,side);}
-    else if(u.oos===OOS_ISOLATED){news.push([u.pos,'Isolée','bad']);log(`${u.name} est isolée.`,side);}
-    else{const at=u.pos;u.steps--;if(u.steps<=0){u.dead=true;u.pos=null;}news.push([at,u.dead?'Détruite':'−1 pas','bad']);log(`${u.name} ${u.dead?'est détruite faute de ravitaillement':'perd un pas faute de ravitaillement'}.`,side);}
-  }
-  if(news.length)setTimeout(()=>news.forEach(([k,t,c],i)=>setTimeout(()=>fx(k,t,c),i*SUPPLY_FX_STAGGER)),SUPPLY_FX_DELAY);
-}
 const vpOf=side=>victory.vpOf(state,side);
 
 const log=(text,side)=>journal.pushLog(state,text,side);
@@ -77,36 +66,24 @@ function captureEffects(id,side){
   const t=TOWNS[id];AUDIO.stamp();
   if(t.vp)setTimeout(()=>{fx(townKey(id),(side==='de'?'+':'−')+t.vp+' PV',side==='de'?'':'bad');pulseScore();},CAPTURE_FX_DELAY);
 }
-function freeHexNear(start,side){
-  const eo=occ(other(side));const seen=new Set([start]);const q=[start];
-  while(q.length){const k=q.shift();if(!eo.has(k)&&stackCount(k,side)<STACK_LIMIT)return k;for(const n of neighbors(k))if(!seen.has(n)){seen.add(n);q.push(n);}}
-  return null;
-}
-function arrive(side){
-  const eo=occ(other(side));let n=0;
-  for(const u of state.units){
-    if(u.side!==side||u.arrived||(u.turn||1)!==state.turn)continue;
-    let k=(u.entry||[]).find(e=>!eo.has(e)&&stackCount(e,side)<STACK_LIMIT)||freeHexNear(u.entry[0],side);
-    u.arrived=true;if(k){placeUnit(u,k);n++;}
-  }
-  if(n)AUDIO.convoy(state.phase===0?2.6:0.9);
-  const a=ARRIVALS.filter(a=>a.turn===state.turn&&a.side===side);
-  for(const x of a)log('Renforts : '+x.text+'.',side);
-}
 
 function startPhase(){
   const ph=PHASES[state.phase];
-  state.attacked=[];
-  for(const u of state.units){u.attacked=false;if(ph.kind==='move'&&u.side===ph.side)u.mp=0;}
   AUDIO.radio(ph.side);
   if(state.phase===0)AUDIO.barrage(0.7,state.turn===1);
-  if(ph.kind==='move'){checkSupply(ph.side);arrive(ph.side);for(const u of state.units)if(u.side===ph.side&&onMap(u))u.mp=mpOf(u);}
+  const r=turn.beginPhase(state);
+  state=r.state;
+  if(r.news.length)setTimeout(()=>r.news.forEach(([k,t,c],i)=>setTimeout(()=>fx(k,t,c),i*SUPPLY_FX_STAGGER)),SUPPLY_FX_DELAY);
+  for(const c of r.captures)captureEffects(c.id,c.side);
+  if(r.arrived)AUDIO.convoy(state.phase===0?2.6:0.9);
   undo=[];sel={};render();save();
   if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);
 }
 function endPhase(){
   if(state.over)return;
-  if(state.phase===3){if(state.turn>=TURNS){endGame();return;}state.turn++;state.phase=0;}else state.phase++;
+  const next=turn.nextPhase(state);
+  if(!next){endGame();return;}
+  state.turn=next.turn;state.phase=next.phase;
   startPhase();
 }
 function endGame(){

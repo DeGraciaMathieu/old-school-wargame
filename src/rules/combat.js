@@ -3,8 +3,8 @@ import { neighbors, dist, ek } from './hex.js';
 import { HEX, riverEdge } from './map.js';
 import { other, onMap, vals, atkOf } from './units.js';
 import { unitsAt, occ, stackCount, zocOf, bondsOf } from './control.js';
-import { townTakenBy } from './victory.js';
-import { pushLog, captureText } from './journal.js';
+import { pushLog } from './journal.js';
+import { enterHex } from './occupation.js';
 
 export function eligibleAttackers(state,k,side){const nb=neighbors(k);return state.units.filter(u=>onMap(u)&&u.side===side&&!u.attacked&&nb.includes(u.pos));}
 export function canTarget(state,k,side){return !state.attacked.includes(k)&&unitsAt(state,k).some(u=>u.side!==side)&&eligibleAttackers(state,k,side).length>0;}
@@ -24,8 +24,6 @@ export function odds(state,k,atk){
 }
 
 /* ---------- Résolution : transition pure, travaille sur une copie de l'état ---------- */
-// Entrée d'une unité sur une case pendant la résolution : prise de ville éventuelle, consignée au journal
-function enter(s,u,k,captures){u.pos=k;const id=townTakenBy(s,u.side,k);if(id){const prev=s.control[id];s.control[id]=u.side;if(prev!==u.side){captures.push({id,side:u.side});pushLog(s,captureText(s,id,u.side),u.side);}}}
 function stepLoss(list){
   const alive=list.filter(u=>!u.dead);if(!alive.length)return null;
   alive.sort((a,b)=>(b.steps-a.steps)||(vals(b)[0]+vals(b)[1]-vals(a)[0]-vals(a)[1]));
@@ -44,7 +42,7 @@ function retreatUnit(s,u,n,enemy,fromHexes,captures){
     const h=c[0];if(ez.has(h)&&stackCount(s,h,u.side,u)===0)lost++;
     seen.add(h);cur=h;
   }
-  enter(s,u,cur,captures);
+  enterHex(s,u,cur,captures);
   const notes=[];
   for(let i=0;i<lost&&!u.dead;i++){u.steps--;if(u.steps<=0){u.dead=true;u.pos=null;}}
   if(lost)notes.push(u.dead?u.name+' est détruit pendant le repli':u.name+' perd 1 pas pendant le repli');
