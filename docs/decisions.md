@@ -168,3 +168,5 @@ devinant.
 - **Poches** : l'affichage `pocketsSvg` doit-il être activé, supprimé ou gardé en réserve ?
 - **Format de sauvegarde** : la clé `le-saillant-v1` stocke l'état brut. Aucune migration
   n'est prévue si sa forme change.
+- **Lint et formatage** : aucun linter ni formateur n'est configuré. Le style compact hérité
+  du prototype est la seule convention. Faut-il en outiller une, et laquelle ?
