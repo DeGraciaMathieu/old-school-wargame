@@ -98,6 +98,8 @@ export const CRT=[
   ['D2','DL','DL2','DE','DE','DE']];
 export const RES={A1:'L\'attaquant perd 1 pas',NE:'Sans effet',D1:'Le défenseur recule d\'1 hexagone',D2:'Le défenseur recule de 2 hexagones',EX:'Échange : chaque camp perd 1 pas',DL:'Le défenseur perd 1 pas et recule d\'1 hexagone',DL2:'Le défenseur perd 1 pas et recule de 2 hexagones',DE:'Le défenseur est éliminé'};
 export const DIE_SIDES=6;
+// Choix de la case de repli : éviter une ZOC ennemie non tenue, s'éloigner des attaquants, préférer le couvert
+export const RETREAT_ZOC_PENALTY=-100, RETREAT_DIST_WEIGHT=10, RETREAT_COVER_BONUS=0.5;
 export const SHIFT_FOREST=-1, SHIFT_TOWN=-1, SHIFT_CITY=-2, SHIFT_RIVER=-1, SHIFT_ARMOR_CLEAR=+1;
 
 /* ---------- Ravitaillement ---------- */
