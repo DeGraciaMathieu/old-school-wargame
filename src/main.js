@@ -8,7 +8,7 @@ import {
 } from './config.js';
 import { key, unkey, DE, DO, neighbors, dist, ek } from './rules/hex.js';
 import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
-import { stepCost } from './rules/movement.js';
+import * as movement from './rules/movement.js';
 import * as control from './rules/control.js';
 import * as supply from './rules/supply.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
@@ -112,26 +112,7 @@ function endGame(){
 }
 
 /* ---------- Mouvement ---------- */
-function reach(u){
-  const enemy=other(u.side),ez=zocOf(enemy),eo=occ(enemy),eb=bondsOf(enemy),mech=isMech(u),start=u.pos,full=u.mp>=mpOf(u);
-  const best=new Map([[start,0]]),prev=new Map(),pq=[[0,start]];
-  while(pq.length){
-    let bi=0;for(let i=1;i<pq.length;i++)if(pq[i][0]<pq[bi][0])bi=i;
-    const [d,k]=pq.splice(bi,1)[0];
-    if(d>best.get(k)+1e-9)continue;
-    if(k!==start&&ez.has(k))continue;
-    for(const n of neighbors(k)){
-      if(eo.has(n)||eb.has(n))continue;
-      if(ez.has(k)&&ez.has(n))continue;
-      let nd=d+stepCost(k,n,mech);
-      if(nd>u.mp+1e-9){if(k===start&&full&&u.mp>0)nd=u.mp;else continue;}
-      if(!best.has(n)||nd<best.get(n)-1e-9){best.set(n,nd);prev.set(n,k);pq.push([nd,n]);}
-    }
-  }
-  const out=new Map();
-  for(const [k,c] of best){if(k===start||stackCount(k,u.side,u)>=STACK_LIMIT)continue;const path=[k];let p=k;while(p!==start){p=prev.get(p);path.unshift(p);}out.set(k,{cost:c,path,zoc:ez.has(k)});}
-  return out;
-}
+const reach=u=>movement.reach(state,u);
 async function doMove(u,k,r){
   busy=true;
   undo.push(JSON.stringify({units:state.units.map(x=>({id:x.id,pos:x.pos,mp:x.mp})),control:{...state.control}}));
@@ -231,7 +212,7 @@ const fieldCache=new Map();
 function field(goal,mech){
   const c=goal+(mech?'m':'i');if(fieldCache.has(c))return fieldCache.get(c);
   const d=new Map([[goal,0]]),pq=[[0,goal]];
-  while(pq.length){let bi=0;for(let i=1;i<pq.length;i++)if(pq[i][0]<pq[bi][0])bi=i;const [dk,k]=pq.splice(bi,1)[0];if(dk>d.get(k))continue;for(const n of neighbors(k)){const nd=dk+stepCost(n,k,mech);if(!d.has(n)||nd<d.get(n)){d.set(n,nd);pq.push([nd,n]);}}}
+  while(pq.length){let bi=0;for(let i=1;i<pq.length;i++)if(pq[i][0]<pq[bi][0])bi=i;const [dk,k]=pq.splice(bi,1)[0];if(dk>d.get(k))continue;for(const n of neighbors(k)){const nd=dk+movement.stepCost(n,k,mech);if(!d.has(n)||nd<d.get(n)){d.set(n,nd);pq.push([nd,n]);}}}
   fieldCache.set(c,d);return d;
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
