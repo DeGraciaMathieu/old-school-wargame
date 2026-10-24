@@ -141,6 +141,13 @@ pas changer le jeu.
   d'arrondi sur les arêtes, a priori). Ils sont conservés car ils déterminent le tracé
   exact des routes.
 - **Garde anti-boucle de l'IA** : `AI_COMBAT_GUARD = 30` attaques au maximum par phase.
+- **Littéraux laissés en place** : les cotes en pixels du dessin SVG (`render/`), les
+  paramètres de synthèse sonore (`render/audio.js`), la teinte des rapports dans la fenêtre
+  « Terminer les combats ? » (`input/actions.js`), l'indice de la phase américaine dans
+  « Renforts à venir » (`render/panel.js`), les distances de repli portées par les codes
+  CRT eux-mêmes (`D2`, `DL2` → 2 hexagones), ainsi que les constantes d'algorithme (PRNG,
+  sentinelles et epsilons de Dijkstra). Toutes les autres valeurs de règle sont dans
+  `config.js`.
 - **Reprise de partie** : une sauvegarde de partie terminée (`over`) n'est pas proposée
   à la reprise.
 

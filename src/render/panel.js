@@ -1,4 +1,4 @@
-import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TOWNS, TURNS, VP_DRAW, VP_GERMAN_WIN, VP_TOTAL } from '../config.js';
+import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TOWNS, TURNS, VP_DRAW, VP_GERMAN_WIN, VP_TOTAL, OOS_ISOLATED } from '../config.js';
 import { ek, neighbors } from '../rules/hex.js';
 import { HEX, riverEdge } from '../rules/map.js';
 import { atkOf, other, vals } from '../rules/units.js';
@@ -9,7 +9,7 @@ import { U, bondsOf, eligibleAttackers, isAI, odds, store, supplyPath, unitsAt, 
 /* ---------- Rendu du panneau ---------- */
 export const panel=document.getElementById('panel');
 function unitMeta(u,ph){
-  const st=[];if(u.steps<u.max)st.push('réduite');if(u.oos)st.push((u.oos>=2?'isolée : attaque et mouvement ÷2':'coupée : attaque ÷2')+(LIVE_CUT.has(u.id)?'':' (ligne rétablie, ravitaillée à la prochaine vérification)'));else if(LIVE_CUT.has(u.id))st.push('sera coupée à sa prochaine vérification');
+  const st=[];if(u.steps<u.max)st.push('réduite');if(u.oos)st.push((u.oos>=OOS_ISOLATED?'isolée : attaque et mouvement ÷2':'coupée : attaque ÷2')+(LIVE_CUT.has(u.id)?'':' (ligne rétablie, ravitaillée à la prochaine vérification)'));else if(LIVE_CUT.has(u.id))st.push('sera coupée à sa prochaine vérification');
   if(ph.kind==='move'&&u.side===ph.side)st.push(u.mp>0?`${u.mp} PM restants`:'mouvement terminé');
   if(ph.kind==='combat'&&u.side===ph.side&&u.attacked)st.push('a déjà attaqué');
   return `<b>${esc(u.name)}</b><span>${esc(u.div)}${st.length?' · '+st.join(' · '):''}</span>`;

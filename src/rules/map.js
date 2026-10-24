@@ -1,6 +1,6 @@
 import {
   COLS,ROWS,FOREST_PROB,FOREST_PROB_WEST,FOREST_PROB_OUR,FOREST_WEST_MAX_COL,FOREST_OUR_MIN_COL,FOREST_OUR_MAX_COL,
-  TERRAIN_SMOOTH_PASSES,FOREST_GROW_MIN,FOREST_CLEAR_MAX,MAP_SEED,TOWNS,RIVERS,ROADS
+  CLEAR_ALT_SHADE_PROB,TERRAIN_SMOOTH_PASSES,FOREST_GROW_MIN,FOREST_CLEAR_MAX,MAP_SEED,TOWNS,RIVERS,ROADS
 } from '../config.js';
 import { key, neighbors, hexLine, ek } from './hex.js';
 
@@ -13,7 +13,7 @@ export const townKey=id=>key(TOWNS[id].c,TOWNS[id].r);
 export function buildMap(seed){
   const rand=mulberry(seed);
   const HEX={};
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){let p=FOREST_PROB;if(c<=FOREST_WEST_MAX_COL)p=FOREST_PROB_WEST;if(c>=FOREST_OUR_MIN_COL&&c<=FOREST_OUR_MAX_COL)p=FOREST_PROB_OUR;HEX[key(c,r)]={c,r,k:key(c,r),t:rand()<p?'forest':'clear',alt:rand()<0.5};}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){let p=FOREST_PROB;if(c<=FOREST_WEST_MAX_COL)p=FOREST_PROB_WEST;if(c>=FOREST_OUR_MIN_COL&&c<=FOREST_OUR_MAX_COL)p=FOREST_PROB_OUR;HEX[key(c,r)]={c,r,k:key(c,r),t:rand()<p?'forest':'clear',alt:rand()<CLEAR_ALT_SHADE_PROB};}
   for(let pass=0;pass<TERRAIN_SMOOTH_PASSES;pass++){const nx={};for(const k in HEX){const n=neighbors(k).filter(x=>HEX[x].t==='forest').length;nx[k]=n>=FOREST_GROW_MIN?'forest':n<=FOREST_CLEAR_MAX?'clear':HEX[k].t;}for(const k in HEX)HEX[k].t=nx[k];}
   for(const id in TOWNS){const t=TOWNS[id];const h=HEX[key(t.c,t.r)];h.t=t.t;h.town=id;}
 

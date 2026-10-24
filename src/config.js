@@ -6,6 +6,8 @@ export const R=28, COLS=16, ROWS=12, PAD=10;
 export const MAP_SEED=1944;
 export const FOREST_PROB=0.4, FOREST_PROB_WEST=0.2, FOREST_PROB_OUR=0.52;
 export const FOREST_WEST_MAX_COL=4, FOREST_OUR_MIN_COL=8, FOREST_OUR_MAX_COL=13;
+// Variante de teinte des cases dégagées (tirée dans la même séquence que les forêts)
+export const CLEAR_ALT_SHADE_PROB=0.5;
 export const TERRAIN_SMOOTH_PASSES=2, FOREST_GROW_MIN=4, FOREST_CLEAR_MAX=1;
 export const TOWNS={
   bastogne:{c:2,r:7,name:'Bastogne',t:'city',vp:5},
@@ -83,7 +85,7 @@ export const ARRIVALS=[
 export const PHASES=[{side:'de',kind:'move',label:'Mouvement allemand'},{side:'de',kind:'combat',label:'Combats allemands'},{side:'us',kind:'move',label:'Mouvement américain'},{side:'us',kind:'combat',label:'Combats américains'}];
 export const SIDE={de:'Allemands',us:'Américains'};
 export const TURNS=8;
-export const FIRST_DAY=16;
+export const FIRST_DAY=16, TURNS_PER_DAY=2;
 
 /* ---------- Combat ---------- */
 export const COLL=['1:2','1:1','3:2','2:1','3:1','4:1','5:1','6:1'], TH=[0.5,1,1.5,2,3,4,5,6];
@@ -104,6 +106,8 @@ export const SHIFT_FOREST=-1, SHIFT_TOWN=-1, SHIFT_CITY=-2, SHIFT_RIVER=-1, SHIF
 
 /* ---------- Ravitaillement ---------- */
 export const OOS_CUT=1, OOS_ISOLATED=2;
+// Coupée : attaque divisée ; isolée : mouvement divisé aussi
+export const OOS_ATK_DIVISOR=2, OOS_MP_DIVISOR=2;
 
 /* ---------- Victoire ---------- */
 export const VP_GERMAN_WIN=5, VP_DRAW=3, VP_TOTAL=11;
