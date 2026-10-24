@@ -175,6 +175,39 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 @media (min-width:901px){.mapact{display:none}}
 .hl-adv{fill:rgba(227,169,61,.55);stroke:#a26f12;stroke-width:2.5;animation:advp .9s ease-in-out infinite alternate}
 @keyframes advp{from{fill-opacity:.3}to{fill-opacity:.85}}
+/* Liaisons de ZOC */
+.bond line{stroke-linecap:butt}
+.bond .base{stroke-width:1.6}
+.bond .tk{stroke-width:7;stroke-dasharray:1.6 4.4}
+.bond.de line{stroke:#35414a} .bond.us line{stroke:#424e12}
+.bond line.halo{stroke:#f4ecd6;stroke-width:11;stroke-linecap:round;opacity:.6}
+.bond.own{opacity:.3}
+.bond.foe{opacity:.9;animation:bondpulse 1.6s ease-in-out infinite alternate}
+.bond.foe .tk{animation:bondmarch 1.1s linear infinite}
+@keyframes bondmarch{to{stroke-dashoffset:-12}}
+@keyframes bondpulse{from{opacity:.6}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.bond.foe,.bond.foe .tk{animation:none}}
+/* Ravitaillement : marqueurs et poches */
+.mk circle{stroke:#1b1505;stroke-width:1}
+.mk.cut circle{fill:#e3a93d} .mk.iso circle{fill:#d4593f}
+.mk.back{opacity:.45}
+.supl path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.supl .h{stroke:#f4ecd6;stroke-width:7.5;opacity:.75}
+.supl .b{stroke-width:3.2} .supl.us .b{stroke:#4f5c1b} .supl.de .b{stroke:#35414a}
+.supl .f{stroke:#f4ecd6;stroke-width:1.6;stroke-dasharray:3 6;animation:supflow 1s linear infinite}
+@keyframes supflow{to{stroke-dashoffset:9}}
+@media (prefers-reduced-motion:reduce){.supl .f{animation:none}}
+.mk.pre circle{fill:#1b1505;stroke:#e3a93d;stroke-width:1.5;stroke-dasharray:2.2 1.6}
+.mk.pre text{fill:#e3a93d}
+.mk text{font-family:var(--f-cond);font-weight:700;font-size:10px;text-anchor:middle;fill:#1b1505}
+.ihatch{fill:url(#ihatch);pointer-events:none}
+.pkfill{fill:rgba(184,52,27,.10)}
+.pkline{fill:none;stroke:#b8341b;stroke-width:3;stroke-linecap:round}
+.pk.next .pkline{stroke-dasharray:7 5;opacity:.85}
+.pk.next .pkfill{fill:rgba(184,52,27,.05)}
+.pkl rect{fill:#b8341b} .pk.next .pkl rect{fill:#7d2a17}
+.pkl rect{stroke:#fff3e6;stroke-width:.8}
+.pkl text{font-family:var(--f-cond);font-weight:700;font-size:9px;letter-spacing:.1em;fill:#fff3e6;text-anchor:middle}
 /* Son et impacts */
 .tog[aria-pressed="false"]{color:var(--muted);text-decoration:line-through}
 .mapwrap.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
@@ -354,6 +387,52 @@ const unitsAt=k=>state.units.filter(u=>onMap(u)&&u.pos===k);
 const occ=side=>new Set(state.units.filter(u=>onMap(u)&&u.side===side).map(u=>u.pos));
 const stackCount=(k,side,except)=>state.units.filter(u=>onMap(u)&&u.pos===k&&u.side===side&&u!==except).length;
 function zocOf(side){const s=new Set();for(const u of state.units){if(u.side!==side||!onMap(u))continue;for(const n of neighbors(u.pos))s.add(n);}return s;}
+function bondsOf(side){
+  // Deux unités amies à 2 cases d'écart : les 1 ou 2 cases qui les séparent sont interdites à l'ennemi
+  const mine=occ(side),foe=occ(other(side)),out=new Map(),done=new Set();
+  for(const a of mine){const na=neighbors(a);
+    for(const m of na)for(const b of neighbors(m)){
+      if(!mine.has(b)||dist(a,b)!==2)continue;
+      const id=a<b?a+'|'+b:b+'|'+a;if(done.has(id))continue;done.add(id);
+      const nb=neighbors(b),common=na.filter(h=>nb.includes(h));
+      if(common.some(h=>foe.has(h)))continue;
+      for(const h of common)if(!mine.has(h))(out.get(h)||out.set(h,[]).get(h)).push([a,b]);
+    }}
+  return out;
+}
+/* Ravitaillement : chemin jusqu'à son bord de carte, hors cases ennemies et hors ZOC ennemie (sauf case tenue par un ami) */
+function supplyOf(side){
+  const own=occ(side),enemy=occ(other(side)),ez=zocOf(other(side));
+  const ok=h=>!enemy.has(h)&&(!ez.has(h)||own.has(h));
+  const col=side==='us'?0:COLS-1,seen=new Set(),q=[];
+  for(let r=0;r<ROWS;r++){const h=key(col,r);if(ok(h)){seen.add(h);q.push(h);}}
+  while(q.length){const h=q.pop();for(const n of neighbors(h))if(!seen.has(n)&&ok(n)&&supCross(h,n)){seen.add(n);q.push(n);}}
+  return seen;
+}
+const supCross=(a,b)=>!riverEdge.has(ek(a,b))||roadEdges.has(ek(a,b));
+function supplyPath(side,from){
+  const own=occ(side),enemy=occ(other(side)),ez=zocOf(other(side)),col=side==='us'?0:COLS-1;
+  const ok=h=>!enemy.has(h)&&(!ez.has(h)||own.has(h));
+  const par=new Map([[from,null]]),q=[from];
+  for(let i=0;i<q.length;i++){const h=q[i];
+    if(unkey(h)[0]===col){const p=[];let x=h;while(x){p.unshift(x);x=par.get(x);}return p;}
+    for(const n of neighbors(h))if(!par.has(n)&&ok(n)&&supCross(h,n)){par.set(n,h);q.push(n);}}
+  return null;
+}
+const atkOf=u=>(u.oos||0)>=1?Math.max(1,Math.floor(vals(u)[0]/2)):vals(u)[0];
+const mpOf=u=>(u.oos||0)>=2?Math.ceil(vals(u)[2]/2):vals(u)[2];
+function checkSupply(side){
+  const ok=supplyOf(side),news=[];
+  for(const u of state.units){
+    if(u.side!==side||!onMap(u))continue;
+    if(ok.has(u.pos)){if(u.oos)news.push([u.pos,'Ravitaillée','']);u.oos=0;continue;}
+    u.oos=(u.oos||0)+1;
+    if(u.oos===1){news.push([u.pos,'Coupée','bad']);log(`${u.name} est coupée de ses lignes.`,side);}
+    else if(u.oos===2){news.push([u.pos,'Isolée','bad']);log(`${u.name} est isolée.`,side);}
+    else{const at=u.pos;u.steps--;if(u.steps<=0){u.dead=true;u.pos=null;}news.push([at,u.dead?'Détruite':'−1 pas','bad']);log(`${u.name} ${u.dead?'est détruite faute de ravitaillement':'perd un pas faute de ravitaillement'}.`,side);}
+  }
+  if(news.length)setTimeout(()=>news.forEach(([k,t,c],i)=>setTimeout(()=>fx(k,t,c),i*180)),350);
+}
 const vpOf=side=>Object.keys(TOWNS).reduce((s,id)=>s+(state.control[id]===side?TOWNS[id].vp:0),0);
 
 function log(text,side){state.log.unshift({t:state.turn,text,side:side||''});if(state.log.length>80)state.log.length=80;}
@@ -362,7 +441,7 @@ function loadSaved(){try{const s=JSON.parse(localStorage.getItem(SAVE)||'null');
 
 function newGame(mode){
   state={mode,turn:1,phase:0,control:{},attacked:[],log:[],over:false,
-    units:OOB.map(o=>({...o,max:o.steps||2,steps:o.steps||2,pos:(o.turn||1)>1?null:o.at,arrived:(o.turn||1)===1,mp:0,attacked:false,dead:false}))};
+    units:OOB.map(o=>({...o,max:o.steps||2,steps:o.steps||2,pos:(o.turn||1)>1?null:o.at,arrived:(o.turn||1)===1,mp:0,attacked:false,dead:false,oos:0}))};
   for(const id in TOWNS)state.control[id]=eastOfOur(townKey(id))?'de':'us';
   log('16 décembre, 5 h 30 : l\'artillerie allemande ouvre le feu sur la ligne de la 28th Division.','de');
   undo=[];sel={};closeModal();startPhase();
@@ -397,7 +476,7 @@ function startPhase(){
   for(const u of state.units){u.attacked=false;if(ph.kind==='move'&&u.side===ph.side)u.mp=0;}
   AUDIO.radio(ph.side);
   if(state.phase===0)AUDIO.barrage(0.7,state.turn===1);
-  if(ph.kind==='move'){arrive(ph.side);for(const u of state.units)if(u.side===ph.side&&onMap(u))u.mp=vals(u)[2];}
+  if(ph.kind==='move'){checkSupply(ph.side);arrive(ph.side);for(const u of state.units)if(u.side===ph.side&&onMap(u))u.mp=mpOf(u);}
   undo=[];sel={};render();save();
   if(isAI(ph.side))setTimeout(runAI,450);
 }
@@ -416,7 +495,7 @@ function endGame(){
 
 /* ---------- Mouvement ---------- */
 function reach(u){
-  const enemy=other(u.side),ez=zocOf(enemy),eo=occ(enemy),mech=isMech(u),start=u.pos,full=u.mp>=vals(u)[2];
+  const enemy=other(u.side),ez=zocOf(enemy),eo=occ(enemy),eb=bondsOf(enemy),mech=isMech(u),start=u.pos,full=u.mp>=mpOf(u);
   const best=new Map([[start,0]]),prev=new Map(),pq=[[0,start]];
   while(pq.length){
     let bi=0;for(let i=1;i<pq.length;i++)if(pq[i][0]<pq[bi][0])bi=i;
@@ -424,7 +503,7 @@ function reach(u){
     if(d>best.get(k)+1e-9)continue;
     if(k!==start&&ez.has(k))continue;
     for(const n of neighbors(k)){
-      if(eo.has(n))continue;
+      if(eo.has(n)||eb.has(n))continue;
       if(ez.has(k)&&ez.has(n))continue;
       let nd=d+stepCost(k,n,mech);
       if(nd>u.mp+1e-9){if(k===start&&full&&u.mp>0)nd=u.mp;else continue;}
@@ -460,7 +539,7 @@ function eligibleAttackers(k,side){const nb=neighbors(k);return state.units.filt
 function canTarget(k,side){return !state.attacked.includes(k)&&unitsAt(k).some(u=>u.side!==side)&&eligibleAttackers(k,side).length>0;}
 function odds(k,atk){
   const defs=unitsAt(k).filter(u=>u.side!==atk[0].side);
-  const A=atk.reduce((s,u)=>s+vals(u)[0],0),D=defs.reduce((s,u)=>s+vals(u)[1],0);
+  const A=atk.reduce((s,u)=>s+atkOf(u),0),D=defs.reduce((s,u)=>s+vals(u)[1],0);
   let col=-1;for(let i=0;i<TH.length;i++)if(A>=TH[i]*D-1e-9)col=i;
   const shifts=[];const t=HEX[k].t;
   if(t==='forest')shifts.push(['Défenseur en forêt',-1]);
@@ -482,8 +561,8 @@ function stepLoss(list){
 function retreatUnit(u,n,enemy,fromHexes){
   let cur=u.pos,lost=0;const seen=new Set([cur]);
   for(let i=0;i<n;i++){
-    const eo=occ(enemy),ez=zocOf(enemy);
-    const c=neighbors(cur).filter(h=>!seen.has(h)&&!eo.has(h)&&stackCount(h,u.side,u)<2);
+    const eo=occ(enemy),ez=zocOf(enemy),eb=bondsOf(enemy);
+    const c=neighbors(cur).filter(h=>!seen.has(h)&&!eo.has(h)&&!eb.has(h)&&stackCount(h,u.side,u)<2);
     if(!c.length){lost+=n-i;break;}
     const score=h=>{const z=ez.has(h)&&stackCount(h,u.side,u)===0;const d=Math.min(...fromHexes.map(f=>dist(f,h)));const dir=u.side==='us'?-HEX[h].c:HEX[h].c;return (z?-100:0)+d*10+dir+(HEX[h].t!=='clear'?0.5:0);};
     c.sort((a,b)=>score(b)-score(a));
@@ -723,7 +802,7 @@ const poly=k=>corners(k).map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
 const POLY={};for(const k in HEX)POLY[k]=poly(k);
 function drawStatic(){
   svg.setAttribute('viewBox',`0 0 ${SVGW} ${SVGH}`);
-  let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern></defs>`;
+  let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern><pattern id="ihatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(150,30,10,.55)" stroke-width="1.3"/></pattern></defs>`;
   s+=`<rect width="${SVGW}" height="${SVGH}" fill="#d9cfb2"/>`;
   s+='<g id="terrain">';
   for(const k in HEX){const h=HEX[k];s+=`<polygon class="hx ${h.t}${h.alt&&h.t==='clear'?' alt':''}" points="${POLY[k]}" data-k="${k}"${h.t==='forest'?' fill="url(#trees)"':''}/>`;}
@@ -738,8 +817,34 @@ function drawStatic(){
   const [ox,oy]=center(13,10);s+=`<text class="rlabel" transform="translate(${(ox+HW*0.48).toFixed(0)},${(oy+R*0.9).toFixed(0)}) rotate(-72)">Our</text>`;
   const [cx2,cy2]=center(8,6);s+=`<text class="rlabel" transform="translate(${(cx2+HW*0.5).toFixed(0)},${(cy2+R*1.3).toFixed(0)}) rotate(-75)">Clerve</text>`;
   s+=`<text class="mlabel" x="${PAD+4}" y="${SVGH-PAD-2}">← Vers la Meuse</text><text class="mlabel" x="${SVGW-PAD-4}" y="${PAD+10}" text-anchor="end">Allemagne →</text>`;
-  s+='</g><g id="hl" pointer-events="none"></g><g id="labels" pointer-events="none"></g><g id="units"></g><g id="fx" pointer-events="none"></g>';
+  s+='</g><g id="hl" pointer-events="none"></g><g id="bonds" pointer-events="none"></g><g id="pockets" pointer-events="none"></g><g id="supline" pointer-events="none"></g><g id="labels" pointer-events="none"></g><g id="units"></g><g id="pklabels" pointer-events="none"></g><g id="fx" pointer-events="none"></g>';
   svg.innerHTML=s;
+}
+let LIVE_CUT=new Set();
+const SHOW_POCKETS=false; // contours de poche désactivés pour l'instant
+const rawNb=k=>{const [c,r]=unkey(k);return (r&1?DO:DE).map(([dc,dr])=>[c+dc,r+dr]);};
+function pocketsSvg(){
+  let out='',lab='';
+  for(const sd of ['de','us']){
+    const live=supplyOf(sd),foe=occ(other(sd));
+    const cut=state.units.filter(u=>onMap(u)&&u.side===sd&&!live.has(u.pos));if(!cut.length)continue;
+    const set=new Set();for(const u of cut){set.add(u.pos);for(const n of neighbors(u.pos))if(!foe.has(n))set.add(n);}
+    const left=new Set(set);
+    while(left.size){
+      const s0=[...left][0],comp=new Set([s0]),q=[s0];left.delete(s0);
+      while(q.length){const h=q.pop();for(const n of neighbors(h))if(left.has(n)){left.delete(n);comp.add(n);q.push(n);}}
+      const inC=cut.filter(u=>comp.has(u.pos)),solid=inC.some(u=>(u.oos||0)>=1);
+      let d='',fill='';
+      for(const h of comp){fill+='M'+POLY[h].split(' ').join('L')+'Z';
+        for(const nc of rawNb(h)){if(comp.has(key(...nc)))continue;const [nx,ny]=center(...nc);const e=corners(h).map(p=>[p,Math.hypot(p[0]-nx,p[1]-ny)]).sort((a,b)=>a[1]-b[1]).slice(0,2).map(x=>x[0]);d+=`M${e[0][0].toFixed(1)},${e[0][1].toFixed(1)}L${e[1][0].toFixed(1)},${e[1][1].toFixed(1)}`;}}
+      const free=[...comp].filter(h=>!unitsAt(h).length).sort((a,b)=>ck(b)[1]-ck(a)[1]||ck(a)[0]-ck(b)[0]);
+      const [ax,ay]=ck(free[0]||[...comp][0]),n=inC.length;
+      const txt=solid?'POCHE':(n>1?'SERONT COUPÉES':'SERA COUPÉE'),w=txt.length*6.2+14,cx=Math.min(SVGW-w/2-4,Math.max(w/2+4,ax));
+      out+=`<g class="pk ${solid?'solid':'next'}"><path class="pkfill" d="${fill}"/><path class="pkline" d="${d}"/></g>`;
+      lab+=`<g class="pk ${solid?'solid':'next'}"><g class="pkl"><rect x="${(cx-w/2).toFixed(1)}" y="${(ay-7).toFixed(1)}" width="${w.toFixed(1)}" height="13" rx="2"/><text x="${cx.toFixed(1)}" y="${(ay+2.4).toFixed(1)}">${txt}</text></g></g>`;
+    }
+  }
+  return [out,lab];
 }
 function symbol(type){
   const ink='#151a12',box='<rect x="-8" y="-7" width="16" height="10" fill="none" stroke="'+ink+'" stroke-width="1.1"/>';
@@ -760,7 +865,10 @@ function counter(u){
   const [a,d,m]=vals(u);
   return `<rect class="cbg ${u.side}" x="-17" y="-17" width="34" height="34" rx="3"/>`+
     (u.steps<u.max?'<path d="M6,-16.5H13.5Q16.5,-16.5 16.5,-13.5V-6Z" fill="#b8402c"/>':'')+
-    `<text class="cn" x="0" y="-10">${esc(u.name)}</text>`+symbol(u.type)+`<text class="cv" x="0" y="13.8">${a}-${d}-${m}</text>`;
+    `<text class="cn" x="0" y="-10">${esc(u.name)}</text>`+symbol(u.type)+`<text class="cv" x="0" y="13.8">${a}-${d}-${m}</text>`+
+    ((u.oos||0)>=2?'<rect class="ihatch" x="-17" y="-17" width="34" height="34" rx="3"/>':'')+
+    ((u.oos||0)>=1?`<g class="mk ${u.oos>=2?'iso':'cut'}${LIVE_CUT.has(u.id)?'':' back'}"><circle cx="-15" cy="-15" r="6.5"/><text x="-15" y="-11.6">${u.oos>=2?'×':'!'}</text></g>`
+      :LIVE_CUT.has(u.id)?'<g class="mk pre"><circle cx="-15" cy="-15" r="6.5"/><text x="-15" y="-11.6">!</text></g>':'');
 }
 const counterIcon=u=>`<svg viewBox="-18 -18 36 36" width="40" height="40" aria-hidden="true">${counter(u)}</svg>`;
 
@@ -773,10 +881,29 @@ function renderMap(){
   if(sel.result&&sel.result.adv.length&&human&&!busy)h+=`<polygon class="hl-adv" points="${POLY[sel.result.k]}"/>`;
   else if(sel.hex&&!sel.target)h+=`<polygon class="hl-sel" points="${POLY[sel.hex]}"/>`;
   svg.querySelector('#hl').innerHTML=h;
+  let bl='';
+  if(ph.kind==='move'&&!state.over){
+    for(const sd of [ph.side,other(ph.side)]){
+      const seen=new Set();
+      for(const pairs of bondsOf(sd).values())for(const [a,b] of pairs){
+        const id=a<b?a+b:b+a;if(seen.has(id))continue;seen.add(id);
+        const [ax,ay]=ck(a),[bx,by]=ck(b),p=t=>[(ax+(bx-ax)*t).toFixed(1),(ay+(by-ay)*t).toFixed(1)],[x1,y1]=p(.22),[x2,y2]=p(.78);
+        bl+=`<g class="bond ${sd} ${sd===ph.side?'own':'foe'}"><line class="halo" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><line class="base" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><line class="tk" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/></g>`;
+      }
+    }
+  }
+  svg.querySelector('#bonds').innerHTML=bl;
+  const [pkS,pkL]=SHOW_POCKETS&&!state.over?pocketsSvg():['',''];
+  svg.querySelector('#pockets').innerHTML=pkS;
+  let sl='';const su=sel.unit?U(sel.unit):(sel.hex&&!sel.target&&!sel.result?unitsAt(sel.hex)[0]:null);
+  if(su&&onMap(su)&&!state.over){const p=supplyPath(su.side,su.pos);if(p){const pts=p.map(ck);pts.push([su.side==='us'?2:SVGW-2,pts[pts.length-1][1]]);const d='M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L');sl=`<g class="supl ${su.side}"><path class="h" d="${d}"/><path class="b" d="${d}"/><path class="f" d="${d}"/></g>`;}}
+  svg.querySelector('#supline').innerHTML=sl;svg.querySelector('#pklabels').innerHTML=pkL;
   let l='';
   for(const id in TOWNS){const t=TOWNS[id];const [x,y]=center(t.c,t.r);l+=`<text class="tlabel" x="${x.toFixed(1)}" y="${(y+24).toFixed(1)}">${t.name}</text>`;
     if(t.vp)l+=`<g class="vp"><circle class="${state.control[id]}" cx="${x.toFixed(1)}" cy="${(y-20).toFixed(1)}" r="6"/><text x="${x.toFixed(1)}" y="${(y-17.2).toFixed(1)}">${t.vp}</text></g>`;}
   svg.querySelector('#labels').innerHTML=l;
+  LIVE_CUT=new Set();
+  if(!state.over)for(const sd of ['de','us']){const live=supplyOf(sd);for(const u of state.units)if(onMap(u)&&u.side===sd&&!live.has(u.pos))LIVE_CUT.add(u.id);}
   const by={};for(const u of state.units)if(onMap(u))(by[u.pos]=by[u.pos]||[]).push(u);
   let s='';
   for(const k in by){const [x,y]=ck(k);by[k].forEach((u,i)=>{
@@ -812,7 +939,7 @@ function animatePath(u,path){
 /* ---------- Rendu du panneau ---------- */
 const panel=document.getElementById('panel');
 function unitMeta(u,ph){
-  const st=[];if(u.steps<u.max)st.push('réduite');
+  const st=[];if(u.steps<u.max)st.push('réduite');if(u.oos)st.push((u.oos>=2?'isolée : attaque et mouvement ÷2':'coupée : attaque ÷2')+(LIVE_CUT.has(u.id)?'':' (ligne rétablie, ravitaillée à la prochaine vérification)'));else if(LIVE_CUT.has(u.id))st.push('sera coupée à sa prochaine vérification');
   if(ph.kind==='move'&&u.side===ph.side)st.push(u.mp>0?`${u.mp} PM restants`:'mouvement terminé');
   if(ph.kind==='combat'&&u.side===ph.side&&u.attacked)st.push('a déjà attaqué');
   return `<b>${esc(u.name)}</b><span>${esc(u.div)}${st.length?' · '+st.join(' · '):''}</span>`;
@@ -822,6 +949,9 @@ function hexBlock(k,ph){
   const rivers=neighbors(k).filter(n=>riverEdge.has(ek(k,n))).length;
   let s=`<div class="box"><span class="eyebrow">Hexagone ${k}</span><h3>${t?t.name:TERRAIN[h.t]}</h3><dl class="kv"><dt>Terrain</dt><dd>${TERRAIN[h.t]}${h.t==='forest'?' · 2 PM (3 blindés), −1 en défense':h.t==='town'?' · −1 en défense':h.t==='city'?' · −2 en défense':' · 1 PM'}</dd>`;
   if(rivers)s+=`<dt>Rivière</dt><dd>+2 PM pour la traverser hors pont</dd>`;
+  const bd=['de','us'].find(sd=>bondsOf(sd).has(k));
+  if(us.length){const su=(sel.unit&&U(sel.unit).pos===k)?U(sel.unit):us[0],p=supplyPath(su.side,su.pos);s+=`<dt>Ravitaillement</dt><dd>${p?`ligne de ${p.length-1} case${p.length>2?'s':''} jusqu'au bord ${su.side==='us'?'ouest':'est'}`:'aucune ligne, unité encerclée'}</dd>`;}
+  if(bd)s+=`<dt>Liaison</dt><dd>Tenue par les ${SIDE[bd].toLowerCase()}, interdite aux ${SIDE[other(bd)].toLowerCase()}</dd>`;
   if(t)s+=`<dt>Contrôle</dt><dd><span class="dot ${state.control[h.town]}" style="display:inline-block;vertical-align:-1px"></span> ${SIDE[state.control[h.town]]}${t.vp?` · ${t.vp} PV`:''}</dd>`;
   s+='</dl>';
   if(us.length){s+='<div class="units">';for(const u of us){s+=`<button type="button" class="ucard${sel.unit===u.id?' on':''}" data-act="unit" data-id="${u.id}">${counterIcon(u)}<span class="meta">${unitMeta(u,ph)}</span></button>`;}s+='</div>';}
@@ -833,7 +963,7 @@ function combatBlock(ph){
   let s=`<div class="box"><span class="eyebrow">Attaque</span><h3>${HEX[k].town?TOWNS[HEX[k].town].name:TERRAIN[HEX[k].t]}</h3><div class="units">`;
   for(const d of defs)s+=`<div class="ucard" style="cursor:default">${counterIcon(d)}<span class="meta"><b>${esc(d.name)}</b><span>Défense ${vals(d)[1]}</span></span></div>`;
   s+='</div><p class="hint" style="margin:10px 0 6px">Unités qui participent :</p><div class="units">';
-  for(const a of cands)s+=`<label class="chk"><input type="checkbox" data-act="toggle" data-id="${a.id}"${sel.attackers.has(a.id)?' checked':''}>${counterIcon(a)}<span class="meta" style="font-size:13px"><b style="font-family:var(--f-cond);font-size:16px;display:block">${esc(a.name)}</b><span style="color:var(--muted)">Attaque ${vals(a)[0]}${riverEdge.has(ek(a.pos,k))?' · à travers la rivière':''}</span></span></label>`;
+  for(const a of cands)s+=`<label class="chk"><input type="checkbox" data-act="toggle" data-id="${a.id}"${sel.attackers.has(a.id)?' checked':''}>${counterIcon(a)}<span class="meta" style="font-size:13px"><b style="font-family:var(--f-cond);font-size:16px;display:block">${esc(a.name)}</b><span style="color:var(--muted)">Attaque ${atkOf(a)}${a.oos?' (coupée)':''}${riverEdge.has(ek(a.pos,k))?' · à travers la rivière':''}</span></span></label>`;
   s+='</div>';
   if(!atk.length)return s+'<p class="hint" style="margin-top:10px">Cochez au moins une unité.</p><div class="btns"><button class="btn ghost" type="button" data-act="cancel">Annuler</button></div></div>';
   const o=odds(k,atk);
@@ -958,8 +1088,9 @@ function rulesScreen(){
   openModal(`<h2>Règles</h2><div class="rules">
   <h3>Tour de jeu</h3><ul><li>Chaque tour : mouvement allemand, combats allemands, mouvement américain, combats américains.</li><li>8 tours, du 16 décembre matin au 19 décembre après-midi. Les renforts arrivent au début du mouvement de leur camp.</li></ul>
   <h3>Les pions</h3><ul><li>Valeurs : attaque, défense, mouvement. Un coin rouge signale une unité réduite (elle a perdu un pas). La plupart des unités ont 2 pas.</li><li>Symboles : croix pour l'infanterie, ovale pour les blindés, les deux pour l'infanterie mécanisée, aile pour les parachutistes.</li><li>Empilement : 2 unités au maximum par hexagone. Touchez une pile plusieurs fois pour passer d'une unité à l'autre.</li></ul>
-  <h3>Mouvement</h3><ul><li>Dégagé 1 PM, forêt 2 PM (3 pour les blindés et mécanisés), village ou ville 1 PM.</li><li>En suivant une route : ½ PM par hexagone, ponts compris.</li><li>Traverser une rivière hors pont : +2 PM.</li><li>Une unité qui n'a pas encore bougé peut toujours avancer d'un hexagone.</li><li>Zone de contrôle (ZOC) : les 6 hexagones autour d'une unité. Entrer en ZOC ennemie arrête le mouvement, et on ne peut pas passer directement d'une ZOC ennemie à une autre.</li></ul>
-  <h3>Combat</h3><ul><li>Facultatif. On attaque un hexagone ennemi adjacent ; plusieurs unités peuvent s'associer. Chaque unité attaque une fois, chaque hexagone n'est attaqué qu'une fois par phase.</li><li>Le rapport attaque/défense est arrondi en faveur du défenseur, puis décalé : forêt −1, village −1, ville −2, toutes les unités attaquent à travers une rivière −1, blindés contre un défenseur sans blindés en terrain dégagé +1.</li><li>Repli : chaque hexagone impossible à parcourir coûte 1 pas, de même qu'un hexagone en ZOC ennemie qui n'est pas occupé par une unité amie.</li><li>Si l'hexagone attaqué se vide, les attaquants peuvent y avancer.</li></ul>
+  <h3>Mouvement</h3><ul><li>Dégagé 1 PM, forêt 2 PM (3 pour les blindés et mécanisés), village ou ville 1 PM.</li><li>En suivant une route : ½ PM par hexagone, ponts compris.</li><li>Traverser une rivière hors pont : +2 PM.</li><li>Une unité qui n'a pas encore bougé peut toujours avancer d'un hexagone.</li><li>Zone de contrôle (ZOC) : les 6 hexagones autour d'une unité. Entrer en ZOC ennemie arrête le mouvement, et on ne peut pas passer directement d'une ZOC ennemie à une autre.</li><li>Liaison : deux unités d'un même camp à deux cases d'écart se tiennent la main. L'ennemi ne peut ni entrer ni reculer dans les cases vides qui les séparent (une ou deux selon leur position). Une unité ennemie déjà placée entre elles rompt la liaison. Pendant le mouvement, les liaisons apparaissent en pointillés entre les pions, plus marquées pour celles de l'adversaire.</li></ul>
+  <h3>Ravitaillement</h3><ul><li>Une unité est ravitaillée si elle peut tracer un chemin jusqu'à son bord de carte : bord est pour les Allemands, bord ouest pour les Américains. Le chemin ne passe ni par une case ennemie, ni par une case en zone de contrôle ennemie, sauf si une unité amie l'occupe. Il ne franchit une rivière que par un pont, là où une route la traverse.</li><li>Le ravitaillement est vérifié au début du mouvement de chaque camp, puis figé jusqu'au tour suivant. Les renforts arrivent ravitaillés.</li><li>Coupée (pastille ambre) : attaque divisée par 2. Isolée, coupée deux tours de suite (pastille rouge, pion hachuré) : attaque et mouvement divisés par 2. À partir du troisième tour, perte d'un pas à chaque vérification.</li><li>Une pastille en pointillés signale une unité qui sera coupée à sa prochaine vérification si rien ne change. À l'inverse, une unité coupée qui retrouve une ligne garde son statut jusqu'à sa prochaine vérification, et sa pastille pâlit. Sélectionner un pion affiche sa ligne de ravitaillement jusqu'à son bord de carte.</li></ul>
+  <h3>Combat</h3><ul><li>Facultatif. On attaque un hexagone ennemi adjacent ; plusieurs unités peuvent s'associer. Chaque unité attaque une fois, chaque hexagone n'est attaqué qu'une fois par phase.</li><li>Le rapport attaque/défense est arrondi en faveur du défenseur, puis décalé : forêt −1, village −1, ville −2, toutes les unités attaquent à travers une rivière −1, blindés contre un défenseur sans blindés en terrain dégagé +1.</li><li>Repli : chaque hexagone impossible à parcourir (ennemi, liaison ennemie, empilement plein, bord de carte) coûte 1 pas, de même qu'un hexagone en ZOC ennemie qui n'est pas occupé par une unité amie.</li><li>Si l'hexagone attaqué se vide, les attaquants peuvent y avancer.</li></ul>
   <p style="margin:8px 0">Croisez la colonne du rapport de force avec la ligne du dé. Les couleurs vont du rouge au vert, du pire au meilleur pour l'attaquant.</p>
   <div class="scrollx"><table class="crt"><thead><tr><th>Dé</th>${COLL.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${[0,1,2,3,4,5].map(d=>`<tr><th>${d+1}</th>${CRT.map(col=>`<td class="r ${col[d]}">${col[d]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   <ul class="legend">${['A1','NE','EX','D1','D2','DL','DL2','DE'].map(c=>`<li><b class="r ${c}">${c}</b><span>${RES[c]}</span></li>`).join('')}</ul>
