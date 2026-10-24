@@ -9,6 +9,7 @@ import {
 import { key, unkey, DE, DO, neighbors, dist, ek } from './rules/hex.js';
 import { other, onMap, isMech, vals, atkOf, mpOf } from './rules/units.js';
 import { stepCost } from './rules/movement.js';
+import * as control from './rules/control.js';
 import { HEX, riverEdge, roadEdges, roadChains, townKey, eastOfOur } from './rules/map.js';
 
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
@@ -30,23 +31,11 @@ let state=null, busy=false, undo=[], sel={}, zoom=1;
 const diceRng=Math.random;
 const isAI=s=>state&&((state.mode==='ai-us'&&s==='us')||(state.mode==='ai-de'&&s==='de'));
 const U=id=>state.units.find(u=>u.id===id);
-const unitsAt=k=>state.units.filter(u=>onMap(u)&&u.pos===k);
-const occ=side=>new Set(state.units.filter(u=>onMap(u)&&u.side===side).map(u=>u.pos));
-const stackCount=(k,side,except)=>state.units.filter(u=>onMap(u)&&u.pos===k&&u.side===side&&u!==except).length;
-function zocOf(side){const s=new Set();for(const u of state.units){if(u.side!==side||!onMap(u))continue;for(const n of neighbors(u.pos))s.add(n);}return s;}
-function bondsOf(side){
-  // Deux unités amies à 2 cases d'écart : les 1 ou 2 cases qui les séparent sont interdites à l'ennemi
-  const mine=occ(side),foe=occ(other(side)),out=new Map(),done=new Set();
-  for(const a of mine){const na=neighbors(a);
-    for(const m of na)for(const b of neighbors(m)){
-      if(!mine.has(b)||dist(a,b)!==2)continue;
-      const id=a<b?a+'|'+b:b+'|'+a;if(done.has(id))continue;done.add(id);
-      const nb=neighbors(b),common=na.filter(h=>nb.includes(h));
-      if(common.some(h=>foe.has(h)))continue;
-      for(const h of common)if(!mine.has(h))(out.get(h)||out.set(h,[]).get(h)).push([a,b]);
-    }}
-  return out;
-}
+const unitsAt=k=>control.unitsAt(state,k);
+const occ=side=>control.occ(state,side);
+const stackCount=(k,side,except)=>control.stackCount(state,k,side,except);
+const zocOf=side=>control.zocOf(state,side);
+const bondsOf=side=>control.bondsOf(state,side);
 /* Ravitaillement : chemin jusqu'à son bord de carte, hors cases ennemies et hors ZOC ennemie (sauf case tenue par un ami) */
 function supplyOf(side){
   const own=occ(side),enemy=occ(other(side)),ez=zocOf(other(side));
