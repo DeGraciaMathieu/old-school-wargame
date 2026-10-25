@@ -105,6 +105,7 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .vp circle{stroke:#2e261a;stroke-width:.8}
 .vp circle.de{fill:#a9b4bd} .vp circle.us{fill:#9aa560}
 .vp text{font-family:var(--f-cond);font-weight:700;font-size:8px;text-anchor:middle;fill:#171a0e}
+.hl-zoc{fill:rgba(178,51,27,.10)}
 .hl-reach{fill:rgba(227,169,61,.42);stroke:#a26f12;stroke-width:1}
 .hl-reachz{fill:rgba(227,169,61,.24);stroke:#b2331b;stroke-width:1.2;stroke-dasharray:3 2}
 .hl-sel{fill:none;stroke:#b8341b;stroke-width:3}

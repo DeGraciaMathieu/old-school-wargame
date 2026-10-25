@@ -57,7 +57,7 @@ function resultBlock(ph){
 }
 export function renderPanel(){
   const ph=PHASES[store.state.phase],ai=isAI(ph.side);
-  const hint=store.state.over?'Partie terminée.':ai?`L'IA joue les ${SIDE[ph.side].toLowerCase()}…`:ph.kind==='move'?'Touchez une de vos unités, puis un hexagone en surbrillance. Les hexagones cerclés de rouge sont en zone de contrôle ennemie : l\'unité s\'y arrête.':'Touchez un ennemi cerclé de rouge pour préparer une attaque. Chaque unité attaque une fois.';
+  const hint=store.state.over?'Partie terminée.':ai?`L'IA joue les ${SIDE[ph.side].toLowerCase()}…`:ph.kind==='move'?'Touchez une de vos unités, puis un hexagone en surbrillance. La zone de contrôle ennemie est teintée de rouge ; un hexagone atteignable qui s\'y trouve est cerclé de rouge : l\'unité s\'y arrête.':'Touchez un ennemi cerclé de rouge pour préparer une attaque. Chaque unité attaque une fois.';
   let s=`<div class="box phase ${ph.side}"><span class="eyebrow">Tour ${store.state.turn}/${TURNS} · ${turnLabel(store.state.turn)}</span><h2>${ph.label}</h2><p class="hint">${hint}</p><div class="btns"><button class="btn" type="button" data-act="end"${store.busy||ai||store.state.over?' disabled':''}>${ph.kind==='move'?'Terminer le mouvement':'Terminer les combats'}</button>${ph.kind==='move'&&!ai&&store.undo.length&&!store.busy?'<button class="btn ghost" type="button" data-act="undo">Annuler le déplacement</button>':''}</div></div>`;
   if(store.sel.result)s+=resultBlock(ph);
   else if(store.sel.target&&!ai)s+=combatBlock(ph);

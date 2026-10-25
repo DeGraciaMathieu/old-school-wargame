@@ -5,7 +5,7 @@ import { isMech, onMap, other, vals } from '../rules/units.js';
 import { AUDIO } from './audio.js';
 import { HW, POLY, SVGH, SVGW, center, ck, corners } from './geometry.js';
 import { esc, goodFor } from './labels.js';
-import { U, bondsOf, canTarget, isAI, occ, store, supplyOf, supplyPath, unitsAt } from '../state/store.js';
+import { U, bondsOf, canTarget, isAI, occ, store, supplyOf, supplyPath, unitsAt, zocOf } from '../state/store.js';
 
 /* ---------- Rendu de la carte ---------- */
 export const svg=document.getElementById('map');
@@ -82,6 +82,8 @@ export const counterIcon=u=>`<svg viewBox="-18 -18 36 36" width="40" height="40"
 export function renderMap(){
   const ph=PHASES[store.state.phase];const human=!isAI(ph.side)&&!store.state.over;
   let h='';
+  // Mouvement d'un joueur humain : ZOC ennemie légèrement teintée, hors cases occupées par l'ennemi
+  if(human&&ph.kind==='move'){const eo=occ(other(ph.side));for(const k of zocOf(other(ph.side)))if(!eo.has(k))h+=`<polygon class="hl-zoc" points="${POLY[k]}"/>`;}
   if(store.sel.reach)for(const [k,r] of store.sel.reach)h+=`<polygon class="${r.zoc?'hl-reachz':'hl-reach'}" points="${POLY[k]}"/>`;
   if(human&&ph.kind==='combat'&&!store.busy){for(const k of new Set(store.state.units.filter(u=>onMap(u)&&u.side!==ph.side).map(u=>u.pos)))if(canTarget(k,ph.side)&&k!==store.sel.target)h+=`<polygon class="hl-target" points="${POLY[k]}"/>`;}
   if(store.sel.target){h+=`<polygon class="hl-tsel" points="${POLY[store.sel.target]}"/>`;const hexes=new Set([...(store.sel.attackers||[])].map(id=>U(id).pos));for(const k of hexes)h+=`<polygon class="hl-atk" points="${POLY[k]}"/>`;}

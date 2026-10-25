@@ -21,7 +21,7 @@ auto_invoke: true
 | Déplacement | `doMove(u,k,r)` — `src/loop/orders.js` | **Mute l'état en place** : empile un instantané dans `store.undo`, `animatePath`, `placeUnit` sur chaque case du chemin, `mp = 0` si `r.zoc`, sinon `mp - cost` |
 | Prise de ville en marchant | `placeUnit(u,k)` — `src/loop/orders.js` | `townTakenBy` (`src/rules/victory.js`) puis `captured` |
 | Annulation | `undoMove()` — `src/loop/orders.js` | Restaure `pos`, `mp`, `control` (pas le journal) ; pile vidée à chaque phase |
-| Affichage | `renderMap` — `src/render/map.js` | `hl-reach` / `hl-reachz` (case en ZOC), liaisons tracées pendant le mouvement (`bond own`/`foe`) |
+| Affichage | `renderMap` — `src/render/map.js` | `hl-zoc` (ZOC ennemie teintée pendant le mouvement d'un joueur humain, hors cases ennemies), `hl-reach` / `hl-reachz` (case atteignable en ZOC), liaisons tracées pendant le mouvement (`bond own`/`foe`) |
 | Animation | `animatePath(u,path)` | `MOVE_MS_PER_HEX` par case, désactivée si `prefers-reduced-motion` |
 | IA | `aiMove(side)` — `src/loop/ai.js` | Objectifs : `AI_US_SLOTS` (Américains), villes à PV avec `AI_DE_CAP_*` et `AI_DE_VP_WEIGHT` (Allemands) ; distances `field(goal,mech)` ; score de case avec `AI_US_COVER_BONUS`, `AI_ZOC_WEIGHT_*` ; ne bouge que si gain > `AI_MOVE_MIN_GAIN` |
 
