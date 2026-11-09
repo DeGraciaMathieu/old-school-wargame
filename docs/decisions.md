@@ -207,6 +207,8 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
   donnée changent.
 - Génie (`eng`) et parachutistes (`ab`) retirés de l'ordre de bataille et de `UNIT_TYPES` : ils n'avaient aucune
   règle propre. `DEFAULT_STEPS` et le champ `steps` du modèle restent, sans unité qui s'en serve.
+- Ligne de ravitaillement sans pas vers le bord adverse (`homeward`, `rules/supply.js`) : chaque case est dans la
+  même colonne que la précédente ou plus près de son bord. La colonne de la clé `'c,r'` sert de mesure.
 
 ## Questions ouvertes de Terra Incognita
 
