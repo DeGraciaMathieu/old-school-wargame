@@ -41,6 +41,18 @@ export const TERRAINS={
   city:{label:'Ville',cost:{mech:1,inf:1},shift:-2,shiftLabel:'Défenseur dans la ville',armorShift:0,cover:true}
 };
 
+/* ---------- Carte générée ---------- */
+// Bandes de colonnes : ouest 0 à ZONE_WEST_MAX_COL, centre, est ZONE_EAST_MIN_COL à COLS-1
+export const ZONE_WEST_MAX_COL=4, ZONE_EAST_MIN_COL=11;
+// Rivières : nombre tiré entre RIVER_MIN et RIVER_MAX ; colonnes (nord-sud) ou lignes (est-ouest) où passe la rive
+export const RIVER_MIN=1, RIVER_MAX=2, RIVER_NS_COLS=[3,13], RIVER_EW_ROWS=[2,10];
+export const RIVER_NAMES=['Sarne','Lisance','Orvane','Mézère','Ardoise','Vaudre'];
+// Villes de chaque bande latérale (identiques à l'ouest et à l'est) et de la bande centrale, neutre au départ
+export const TOWN_LAYOUT={side:[{t:'town',vp:2},{t:'town',vp:1},{t:'town',vp:0}],center:[{t:'city',vp:3},{t:'town',vp:1},{t:'town',vp:1}]};
+// Écart minimal entre deux villes, tirages avant d'abandonner, villes reliées à leur bord par une route
+export const TOWN_MIN_DIST=3, TOWN_TRIES=50, EXITS_PER_SIDE=2;
+export const TOWN_NAMES=['Valbrune','Hautrive','Morlanne','Brévannes','Ostrand','Kellmarch','Lorvic','Sarnac','Vescourt','Altheim','Dornay','Roquelin','Faverge','Grisbach','Montaval','Tiercelin'];
+
 /* ---------- Mouvement ---------- */
 export const ROAD_COST=0.5, RIVER_CROSSING_COST=2;
 export const STACK_LIMIT=2;

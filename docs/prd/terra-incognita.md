@@ -58,16 +58,15 @@ Après l'extraction, le moteur ne dépend plus d'une carte ni d'un scénario fix
   - Rivières : leur nombre est tiré entre `RIVER_MIN` et `RIVER_MAX`. Chaque rivière tire son sens, nord-sud ou
     est-ouest, puis traverse la carte d'un bord au bord opposé en marche aléatoire, comme `randomLayout` dans le POC.
     Ses noms sont tirés dans `RIVER_NAMES`.
-  - Villes : `TOWNS_PER_SIDE` villes dans chaque bande latérale, `NEUTRAL_TOWNS` dans la bande centrale, dont une
-    seule `city`. Elles sont espacées d'au moins `TOWN_MIN_DIST` et jamais sur une colonne de bord. Leurs noms sont
-    tirés sans remise dans `TOWN_NAMES` (noms fictifs).
-  - PV : la bande ouest et la bande est totalisent exactement le même nombre de PV (`VP_PER_SIDE`). Les PV du centre
-    valent `VP_CENTER`.
-  - Routes : un réseau qui relie toutes les villes et qui atteint chaque bord, tracé avec `hexLine` comme
-    aujourd'hui. Une route qui croise une rivière y forme un pont (règle actuelle).
-- **Invariants garantis** par le générateur : le réseau de routes est connexe et touche les deux bords ; chaque camp
-  a au moins `ENTRY_MIN` cases d'entrée sur son bord ; les deux bandes latérales ont le même total de PV. Si une
-  disposition tirée viole un invariant, le générateur retire dans la même séquence (`MAPGEN_TRIES`).
+  - Villes : `TOWN_LAYOUT` décrit les villes de chaque bande latérale (`side`, identiques à l'ouest et à l'est :
+    villages de 2, 1 et 0 PV) et de la bande centrale (`center` : une ville de 3 PV, deux villages de 1 PV). Elles sont
+    espacées d'au moins `TOWN_MIN_DIST`, jamais sur une colonne de bord, et tirées de nouveau jusqu'à `TOWN_TRIES` fois
+    si la place manque. Leurs noms sont tirés sans remise dans `TOWN_NAMES` (noms fictifs).
+  - Routes : l'arbre couvrant le plus court entre les villes, plus une route de chacune des `EXITS_PER_SIDE` villes
+    les plus proches de chaque bord jusqu'à ce bord, tracées avec `hexLine`. Une route qui croise une rivière y forme
+    un pont (règle actuelle).
+- **Invariants garantis** par construction : le réseau de routes est connexe et touche les deux bords (`map.exits`) ;
+  les deux bandes latérales ont le même total de PV.
 
 ### Ordre de bataille et déploiement
 - **Fixe et identique pour les deux camps.** Un seul modèle `OOB_TEMPLATE` dans `config.js` (types, valeurs, pas, tour
@@ -125,8 +124,8 @@ Après l'extraction, le moteur ne dépend plus d'une carte ni d'un scénario fix
 
 ## Impact par couche
 - `config.js` : `SIDE`, `PHASES` (camp « premier »/« second »), `TURNS_PER_DAY` ; nouvelles constantes de génération
-  (`ZONE_WEST_MAX_COL`, `ZONE_EAST_MIN_COL`, `RIVER_MIN`, `RIVER_MAX`, `TOWNS_PER_SIDE`, `NEUTRAL_TOWNS`, `TOWN_MIN_DIST`,
-  `VP_PER_SIDE`, `VP_CENTER`, `ENTRY_MIN`, `MAPGEN_TRIES`, `TOWN_NAMES`, `RIVER_NAMES`), `OOB_TEMPLATE`, `UNIT_NAMES`,
+  (`ZONE_WEST_MAX_COL`, `ZONE_EAST_MIN_COL`, `RIVER_MIN`, `RIVER_MAX`, `RIVER_NS_COLS`, `RIVER_EW_ROWS`, `TOWN_LAYOUT`,
+  `TOWN_MIN_DIST`, `TOWN_TRIES`, `EXITS_PER_SIDE`, `TOWN_NAMES`, `RIVER_NAMES`), `OOB_TEMPLATE`, `UNIT_NAMES`,
   `VP_WIN_MARGIN`, constantes d'IA unifiées ; suppression du scénario `SAILLANT`, de `FIRST_DAY`, de `VP_GERMAN_WIN`,
   `VP_DRAW`, `VP_TOTAL` et des constantes d'IA par camp.
 - `rules/` : nouveau `mapgen.js` (`generateMap`) et `deploy.js` (`deploy`) ; `units.js` (`other`) ; `supply.js`
