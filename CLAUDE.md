@@ -9,7 +9,7 @@ Wargame à hexagones au tour par tour (bataille des Ardennes, route de Bastogne,
   aucun bundler, aucun transpileur (branche « zéro-build », voir `docs/decisions.md`).
 - Node 22 ou plus (`"engines": { "node": ">=22" }`).
 - Rendu en SVG inline construit par chaînes (`innerHTML`), son synthétisé en Web Audio,
-  sauvegarde dans `localStorage` (`SAVE_KEY = 'le-saillant-v1'`).
+  sauvegarde dans `localStorage` (`SAVE_KEY = 'terra-incognita-v1'`).
 
 | Commande | Effet |
 | --- | --- |
@@ -50,7 +50,7 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
   `main.js` appelle `useDice(Math.random)`. Les tests passent `createRng(seed)` ou un dé pipé.
 - Ne pas remplacer `mulberry(MAP_SEED)` dans `rules/map.js` : la carte dépend de sa séquence
   exacte (empreinte figée dans `tests/map.test.js`).
-- Ne pas changer la forme de l'état sauvegardé sans traiter la migration de `le-saillant-v1`
+- Ne pas changer la forme de l'état sauvegardé sans traiter la migration de `terra-incognita-v1`
   (question ouverte, voir `docs/decisions.md`).
 
 ### État

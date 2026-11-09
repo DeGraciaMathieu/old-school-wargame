@@ -49,7 +49,7 @@ Ce qui ne sera pas fait.
 - `render/` (y compris textes de règles affichés) :
 - `input/` :
 - `loop/` (y compris IA) :
-- Sauvegarde (`le-saillant-v1`) :
+- Sauvegarde (`terra-incognita-v1`) :
 
 ## Critères d'acceptation
 Liste vérifiable, une ligne par critère.

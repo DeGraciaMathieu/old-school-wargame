@@ -170,3 +170,13 @@ devinant.
   n'est prévue si sa forme change.
 - **Lint et formatage** : aucun linter ni formateur n'est configuré. Le style compact hérité
   du prototype est la seule convention. Faut-il en outiller une, et laquelle ?
+
+## Branche `jeu/terra-incognita`
+
+Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction-du-coeur.md`, puis
+`docs/prd/terra-incognita.md`.
+
+- Clés de stockage propres (`SAVE_KEY='terra-incognita-v1'`, `AUDIO_PREF_KEY='terra-incognita-audio'`) : les deux jeux
+  servis sur `localhost` ne partagent ni sauvegarde ni préférence de son. Aucune migration depuis `le-saillant-v1`.
+- `mulberry(MAP_SEED)` reste intouchable tant que le scénario du Saillant sert de référence à l'extraction ; la consigne
+  tombera avec ce scénario.

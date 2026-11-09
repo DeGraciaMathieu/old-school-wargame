@@ -132,7 +132,7 @@ export const AUDIO_BARRAGE_DELAY=0.7, AUDIO_CONVOY_DELAY_DAWN=2.6, AUDIO_CONVOY_
 export const FX_LIFETIME=1800, BLAST_LIFETIME=900, MOVE_MS_PER_HEX=140, MOVE_ANIM_FALLBACK=400;
 
 /* ---------- Interface ---------- */
-export const SAVE_KEY='le-saillant-v1', AUDIO_PREF_KEY='le-saillant-audio';
+export const SAVE_KEY='terra-incognita-v1', AUDIO_PREF_KEY='terra-incognita-audio';
 export const LOG_MAX=80;
 export const END_COMBAT_LIST_MAX=6;
 export const ZOOM_MIN=0.6, ZOOM_MAX=2.2, ZOOM_STEP=1.18, ZOOM_INIT_MIN=0.85, ZOOM_INIT_MAX=1.5;
