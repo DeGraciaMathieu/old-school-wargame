@@ -1,6 +1,6 @@
 import { TERRAINS, STACK_LIMIT, COLL, TH, CRT, RES, DIE_SIDES, RETREAT_ZOC_PENALTY, RETREAT_DIST_WEIGHT, RETREAT_COVER_BONUS, SHIFT_RIVER } from '../config.js';
 import { neighbors, dist, ek } from './hex.js';
-import { other, onMap, vals, atkOf } from './units.js';
+import { other, onMap, vals, atkOf, homeCol } from './units.js';
 import { unitsAt, occ, stackCount, zocOf, bondsOf } from './control.js';
 import { pushLog } from './journal.js';
 import { enterHex } from './occupation.js';
@@ -34,7 +34,7 @@ function retreatUnit(s,u,n,enemy,fromHexes,captures){
     const eo=occ(s,enemy),ez=zocOf(s,enemy),eb=bondsOf(s,enemy);
     const c=neighbors(cur).filter(h=>!seen.has(h)&&!eo.has(h)&&!eb.has(h)&&stackCount(s,h,u.side,u)<STACK_LIMIT);
     if(!c.length){lost+=n-i;break;}
-    const score=h=>{const z=ez.has(h)&&stackCount(s,h,u.side,u)===0;const d=Math.min(...fromHexes.map(f=>dist(f,h)));const dir=u.side==='us'?-s.map.hex[h].c:s.map.hex[h].c;return (z?RETREAT_ZOC_PENALTY:0)+d*RETREAT_DIST_WEIGHT+dir+(TERRAINS[s.map.hex[h].t].cover?RETREAT_COVER_BONUS:0);};
+    const score=h=>{const z=ez.has(h)&&stackCount(s,h,u.side,u)===0;const d=Math.min(...fromHexes.map(f=>dist(f,h)));const dir=homeCol(u.side)===0?-s.map.hex[h].c:s.map.hex[h].c;return (z?RETREAT_ZOC_PENALTY:0)+d*RETREAT_DIST_WEIGHT+dir+(TERRAINS[s.map.hex[h].t].cover?RETREAT_COVER_BONUS:0);};
     c.sort((a,b)=>score(b)-score(a));
     const h=c[0];if(ez.has(h)&&stackCount(s,h,u.side,u)===0)lost++;
     seen.add(h);cur=h;

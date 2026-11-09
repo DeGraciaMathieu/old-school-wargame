@@ -1,6 +1,8 @@
-import { OOS_CUT, OOS_ISOLATED, OOS_ATK_DIVISOR, OOS_MP_DIVISOR } from '../config.js';
+import { COLS, HOME, OOS_CUT, OOS_ISOLATED, OOS_ATK_DIVISOR, OOS_MP_DIVISOR } from '../config.js';
 
-export const other=s=>s==='de'?'us':'de';
+export const other=s=>s==='blue'?'red':'blue';
+// Colonne du bord d'un camp (ravitaillement, renforts, repli)
+export const homeCol=s=>HOME[s]==='west'?0:COLS-1;
 export const onMap=u=>!u.dead&&!!u.pos;
 export const isMechType=t=>t==='arm'||t==='mech'||t==='td';
 export const isMech=u=>isMechType(u.type);

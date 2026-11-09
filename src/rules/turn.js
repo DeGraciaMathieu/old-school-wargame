@@ -1,4 +1,4 @@
-import { STACK_LIMIT, OOS_CUT, OOS_ISOLATED, PHASES, TURNS } from '../config.js';
+import { STACK_LIMIT, OOS_CUT, OOS_ISOLATED, PHASE_COUNT, INITIATIVE, PHASE_LABELS, TURNS } from '../config.js';
 import { neighbors } from './hex.js';
 import { other, onMap, mpOf } from './units.js';
 import { occ, stackCount } from './control.js';
@@ -39,10 +39,17 @@ function arrive(s,side,captures){
   return n;
 }
 
+/* Phase en cours : INITIATIVE[0] ouvre les tours impairs, l'autre camp les tours pairs ;
+   dans chaque moitié de tour, mouvement puis combats */
+export function phaseOf({turn,phase}){
+  const first=INITIATIVE[(turn-1)%2],side=phase<2?first:other(first),kind=phase%2?'combat':'move';
+  return {side,kind,label:PHASE_LABELS[side][kind]};
+}
+
 /* Début de phase : remise à zéro des attaques ; en mouvement, ravitaillement, renforts et PM du camp actif */
 export function beginPhase(state){
   const s=structuredClone(state),news=[],captures=[];let arrived=0;
-  const ph=PHASES[s.phase];
+  const ph=phaseOf(s);
   s.attacked=[];
   for(const u of s.units){u.attacked=false;if(ph.kind==='move'&&u.side===ph.side)u.mp=0;}
   if(ph.kind==='move'){checkSupply(s,ph.side,news);arrived=arrive(s,ph.side,captures);for(const u of s.units)if(u.side===ph.side&&onMap(u))u.mp=mpOf(u);}
@@ -51,6 +58,6 @@ export function beginPhase(state){
 
 // Phase suivante, ou null quand la dernière phase du dernier tour est terminée
 export function nextPhase({turn,phase}){
-  if(phase===PHASES.length-1)return turn>=TURNS?null:{turn:turn+1,phase:0};
+  if(phase===PHASE_COUNT-1)return turn>=TURNS?null:{turn:turn+1,phase:0};
   return {turn,phase:phase+1};
 }

@@ -2,36 +2,11 @@
 export const R=28, COLS=16, ROWS=12, PAD=10;
 
 /* ---------- Carte ---------- */
-// 1944 : année de la bataille, graine du terrain procédural
-export const MAP_SEED=1944;
-export const FOREST_PROB=0.4, FOREST_PROB_WEST=0.2, FOREST_PROB_OUR=0.52;
-export const FOREST_WEST_MAX_COL=4, FOREST_OUR_MIN_COL=8, FOREST_OUR_MAX_COL=13;
+export const FOREST_PROB=0.4;
 // Variante de teinte des cases dégagées (tirée dans la même séquence que les forêts)
 export const CLEAR_ALT_SHADE_PROB=0.5;
 export const TERRAIN_SMOOTH_PASSES=2, FOREST_GROW_MIN=4, FOREST_CLEAR_MAX=1;
-export const TOWNS={
-  bastogne:{c:2,r:7,name:'Bastogne',t:'city',vp:5},
-  noville:{c:3,r:5,name:'Noville',t:'town',vp:0},
-  houffalize:{c:3,r:1,name:'Houffalize',t:'town',vp:2},
-  longvilly:{c:6,r:6,name:'Longvilly',t:'town',vp:0},
-  wiltz:{c:7,r:9,name:'Wiltz',t:'town',vp:2},
-  clervaux:{c:10,r:4,name:'Clervaux',t:'town',vp:1},
-  marnach:{c:12,r:4,name:'Marnach',t:'town',vp:0},
-  hosingen:{c:12,r:6,name:'Hosingen',t:'town',vp:1},
-  dasburg:{c:14,r:3,name:'Dasburg',t:'town',vp:0},
-  gemund:{c:14,r:7,name:'Gemünd',t:'town',vp:0}
-};
-export const RIVERS=[{name:'Our',b:[14,14,13,13,13,13,13,14,14,14,14,14]},{name:'Clerve',b:[null,null,null,10,10,9,9,9,9,9,9,9]}];
-export const ROADS=[
-  ['dasburg','marnach','clervaux','8,5','longvilly','bastogne','0,7'],
-  ['15,3','dasburg'],
-  ['15,7','gemund','hosingen','marnach'],
-  ['hosingen','10,8','wiltz','4,8','bastogne'],
-  ['bastogne','noville','houffalize','0,1'],
-  ['clervaux','6,2','houffalize'],
-  ['15,10','12,10','wiltz','7,11'],
-  ['bastogne','2,11']
-];
+
 // Terrains de case : libellé, coût d'entrée en PM (mécanisés / autres), décalage du défenseur et son libellé,
 // décalage des blindés attaquants (si le défenseur n'a ni blindé ni chasseur de chars), couvert (repli, IA)
 export const TERRAINS={
@@ -61,50 +36,34 @@ export const BOND_RANGE=2;
 
 /* ---------- Ordre de bataille ---------- */
 export const DEFAULT_STEPS=2;
-export const OOB=[
-  {id:'pz3',side:'de',name:'Pz.Rgt 3',div:'2. Panzer-Division',type:'arm',v:[8,5,6],rv:[4,3,6],at:'14,3'},
-  {id:'pg2',side:'de',name:'PzGr 2',div:'2. Panzer-Division',type:'mech',v:[6,5,5],rv:[3,3,5],at:'15,3'},
-  {id:'pg304',side:'de',name:'PzGr 304',div:'2. Panzer-Division',type:'mech',v:[6,5,5],rv:[3,3,5],at:'15,2'},
-  {id:'gr77',side:'de',name:'GR 77',div:'26. Volksgrenadier-Division',type:'inf',v:[5,4,4],rv:[3,2,4],at:'14,6'},
-  {id:'gr78',side:'de',name:'GR 78',div:'26. Volksgrenadier-Division',type:'inf',v:[5,4,4],rv:[3,2,4],at:'14,7'},
-  {id:'gr39',side:'de',name:'GR 39',div:'26. Volksgrenadier-Division',type:'inf',v:[5,4,4],rv:[3,2,4],at:'15,6'},
-  {id:'fj13',side:'de',name:'FJR 13',div:'5. Fallschirmjäger-Division',type:'ab',v:[4,4,4],rv:[2,2,4],at:'14,9'},
-  {id:'fj14',side:'de',name:'FJR 14',div:'5. Fallschirmjäger-Division',type:'ab',v:[4,4,4],rv:[2,2,4],at:'14,11'},
-  {id:'fj15',side:'de',name:'FJR 15',div:'5. Fallschirmjäger-Division',type:'ab',v:[4,4,4],rv:[2,2,4],at:'15,10'},
-  {id:'pl130',side:'de',name:'Pz.Lehr 130',div:'Panzer-Lehr-Division',type:'arm',v:[8,5,6],rv:[4,3,6],turn:2,entry:['15,7','15,8','15,6']},
-  {id:'pl901',side:'de',name:'PzGr 901',div:'Panzer-Lehr-Division',type:'mech',v:[6,5,5],rv:[3,3,5],turn:2,entry:['15,8','15,7','15,9']},
-  {id:'pl902',side:'de',name:'PzGr 902',div:'Panzer-Lehr-Division',type:'mech',v:[6,5,5],rv:[3,3,5],turn:2,entry:['15,9','15,8','15,7']},
-
-  {id:'i1',side:'us',name:'1/110',div:'28th Infantry Division',type:'inf',v:[2,3,4],rv:[1,2,4],at:'10,4'},
-  {id:'i2',side:'us',name:'2/110',div:'28th Infantry Division',type:'inf',v:[2,3,4],rv:[1,2,4],at:'11,8'},
-  {id:'i3',side:'us',name:'3/110',div:'28th Infantry Division',type:'inf',v:[2,3,4],rv:[1,2,4],at:'12,6'},
-  {id:'i112',side:'us',name:'112 Inf',div:'28th Infantry Division',type:'inf',v:[3,3,4],rv:[2,2,4],at:'12,1'},
-  {id:'i109',side:'us',name:'109 Inf',div:'28th Infantry Division',type:'inf',v:[3,3,4],rv:[2,2,4],at:'12,11'},
-  {id:'tk707',side:'us',name:'707 Tk',div:'707th Tank Battalion',type:'arm',v:[3,2,6],rv:[2,1,6],at:'7,9'},
-  {id:'en44',side:'us',name:'44 Eng',div:'44th Engineer Combat Bn',type:'eng',v:[1,2,4],rv:[1,2,4],steps:1,at:'7,9'},
-  {id:'rose',side:'us',name:'TF Rose',div:'CCR, 9th Armored Division',type:'arm',v:[3,3,7],rv:[2,2,7],turn:2,entry:['4,7','5,6','3,7']},
-  {id:'harper',side:'us',name:'TF Harper',div:'CCR, 9th Armored Division',type:'arm',v:[3,3,7],rv:[2,2,7],turn:2,entry:['4,7','5,6','3,7']},
-  {id:'desobry',side:'us',name:'Tm Desobry',div:'CCB, 10th Armored Division',type:'arm',v:[3,3,7],rv:[2,2,7],turn:5,entry:['2,7','1,7','2,8','1,6']},
-  {id:'ohara',side:'us',name:"Tm O'Hara",div:'CCB, 10th Armored Division',type:'arm',v:[3,3,7],rv:[2,2,7],turn:5,entry:['2,7','1,7','2,8','1,6']},
-  {id:'cherry',side:'us',name:'Tm Cherry',div:'CCB, 10th Armored Division',type:'arm',v:[3,3,7],rv:[2,2,7],turn:5,entry:['2,7','1,7','2,8','1,6']},
-  {id:'p501',side:'us',name:'501 PIR',div:'101st Airborne Division',type:'ab',v:[3,5,4],rv:[2,3,4],turn:7,entry:['0,7','0,6','0,8','1,8','1,6']},
-  {id:'p506',side:'us',name:'506 PIR',div:'101st Airborne Division',type:'ab',v:[3,5,4],rv:[2,3,4],turn:7,entry:['0,7','0,6','0,8','1,8','1,6']},
-  {id:'p502',side:'us',name:'502 PIR',div:'101st Airborne Division',type:'ab',v:[3,5,4],rv:[2,3,4],turn:7,entry:['0,7','0,6','0,8','1,8','1,6']},
-  {id:'g327',side:'us',name:'327 GIR',div:'101st Airborne Division',type:'ab',v:[3,5,4],rv:[2,3,4],turn:7,entry:['0,7','0,6','0,8','1,8','1,6']},
-  {id:'td705',side:'us',name:'705 TD',div:'705th Tank Destroyer Bn',type:'td',v:[3,2,6],rv:[2,1,6],turn:7,entry:['0,7','0,6','0,8','1,8','1,6']}
+// Modèle commun aux deux camps : [attaque, défense, mouvement] pleines (v) et réduites (rv), tour d'arrivée des renforts
+export const OOB_TEMPLATE=[
+  {type:'arm',v:[6,4,6],rv:[3,2,6]},{type:'arm',v:[6,4,6],rv:[3,2,6]},
+  {type:'mech',v:[5,4,5],rv:[3,2,5]},{type:'mech',v:[5,4,5],rv:[3,2,5]},
+  {type:'inf',v:[4,4,4],rv:[2,2,4]},{type:'inf',v:[4,4,4],rv:[2,2,4]},{type:'inf',v:[4,4,4],rv:[2,2,4]},
+  {type:'eng',v:[1,2,4],rv:[1,2,4],steps:1},
+  {type:'arm',v:[6,4,6],rv:[3,2,6],turn:3},{type:'mech',v:[5,4,5],rv:[3,2,5],turn:3},
+  {type:'ab',v:[3,5,4],rv:[2,3,4],turn:5},{type:'ab',v:[3,5,4],rv:[2,3,4],turn:5},
+  {type:'td',v:[3,2,6],rv:[2,1,6],turn:6}
 ];
-export const ARRIVALS=[
-  {turn:2,side:'de',text:'Panzer-Lehr (3 unités), bord est'},
-  {turn:2,side:'us',text:'CCR / 9th Armored (2 unités), à l\'est de Bastogne'},
-  {turn:5,side:'us',text:'CCB / 10th Armored (3 unités), Bastogne'},
-  {turn:7,side:'us',text:'101st Airborne et 705 TD (5 unités), bord ouest'}
-];
+// Types d'unité : abréviation sur le pion, nom au singulier et au pluriel (annonces de renforts)
+export const UNIT_TYPES={arm:{abbr:'Bld',one:'blindé',many:'blindés'},mech:{abbr:'Méca',one:'mécanisé',many:'mécanisés'},
+  inf:{abbr:'Inf',one:'bataillon d\'infanterie',many:'bataillons d\'infanterie'},ab:{abbr:'Para',one:'parachutiste',many:'parachutistes'},
+  eng:{abbr:'Génie',one:'génie',many:'génies'},td:{abbr:'CC',one:'chasseur de chars',many:'chasseurs de chars'}};
+// Garnisons de départ : types placés d'abord dans les villes à PV de leur camp
+export const GARRISON_TYPES=['inf'];
 
 /* ---------- Tours ---------- */
-export const PHASES=[{side:'de',kind:'move',label:'Mouvement allemand'},{side:'de',kind:'combat',label:'Combats allemands'},{side:'us',kind:'move',label:'Mouvement américain'},{side:'us',kind:'combat',label:'Combats américains'}];
-export const SIDE={de:'Allemands',us:'Américains'};
-export const TURNS=8;
-export const FIRST_DAY=16, TURNS_PER_DAY=2;
+// Chaque tour : mouvement puis combats d'un camp, puis de l'autre ; INITIATIVE[0] ouvre les tours impairs
+export const PHASE_COUNT=4, INITIATIVE=['blue','red'];
+export const SIDE={blue:'Bleus',red:'Rouges'};
+export const PHASE_LABELS={blue:{move:'Mouvement bleu',combat:'Combats bleus'},red:{move:'Mouvement rouge',combat:'Combats rouges'}};
+// Bord de chaque camp : ravitaillement, renforts, sens du repli
+export const HOME={blue:'west',red:'east'};
+export const ARMY={blue:'Armée bleue',red:'Armée rouge'};
+export const TURNS=8, TURNS_PER_DAY=2;
+// Graine de carte tirée entre 1 et SEED_MAX
+export const SEED_MAX=999999;
 
 /* ---------- Combat ---------- */
 export const COLL=['1:2','1:1','3:2','2:1','3:1','4:1','5:1','6:1'], TH=[0.5,1,1.5,2,3,4,5,6];
@@ -129,7 +88,8 @@ export const OOS_CUT=1, OOS_ISOLATED=2;
 export const OOS_ATK_DIVISOR=2, OOS_MP_DIVISOR=2;
 
 /* ---------- Victoire ---------- */
-export const VP_GERMAN_WIN=5, VP_DRAW=3, VP_TOTAL=11;
+// Écart de PV minimal pour gagner ; en deçà, match nul
+export const VP_WIN_MARGIN=2;
 
 /* ---------- IA ---------- */
 export const AI_US_SLOTS=[['bastogne',2],['wiltz',1],['houffalize',1],['noville',1],['longvilly',1],['clervaux',1],['hosingen',1]];
@@ -157,10 +117,3 @@ export const END_COMBAT_LIST_MAX=6;
 export const ZOOM_MIN=0.6, ZOOM_MAX=2.2, ZOOM_STEP=1.18, ZOOM_INIT_MIN=0.85, ZOOM_INIT_MAX=1.5;
 export const MOBILE_MAX_WIDTH=900;
 export const SHOW_POCKETS=false; // contours de poche désactivés pour l'instant
-
-/* ---------- Scénario ---------- */
-// Le Saillant : carte (graine, villes, rivières, routes), ordre de bataille, renforts, premier message du journal,
-// objectifs de l'IA (garnisons américaines, ville principale et plafond d'attaquants allemands sur elle)
-export const SAILLANT={seed:MAP_SEED,towns:TOWNS,rivers:RIVERS,roads:ROADS,oob:OOB,arrivals:ARRIVALS,
-  intro:'16 décembre, 5 h 30 : l\'artillerie allemande ouvre le feu sur la ligne de la 28th Division.',
-  ai:{slots:AI_US_SLOTS,main:'bastogne',mainCap:AI_DE_CAP_BASTOGNE}};

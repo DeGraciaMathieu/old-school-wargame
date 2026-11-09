@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { stepCost, reach } from '../src/rules/movement.js';
-import { buildMap } from '../src/rules/map.js';
-import { SAILLANT, TERRAINS } from '../src/config.js';
+import { TERRAINS } from '../src/config.js';
+import { testMap } from './fixtures.js';
 
-const map = buildMap(SAILLANT);
+const map = testMap({ forest: ['9,0'], rivers: [['13,4', '12,4'], ['13,0', '14,0']], roads: [['13,4', '12,4']] });
 
 test('suivre une route coûte ½ PM, même sur un pont', () => {
   assert.equal(stepCost(map, '13,4', '12,4', true), 0.5);
@@ -29,8 +29,8 @@ test('le coût d\'un pas se lit dans la table des terrains', () => {
 const inf = (id, side, pos, mp, ma = 4) => ({ id, side, pos, mp, type: 'inf', v: [2, 3, ma], rv: [1, 2, ma], max: 2, steps: 2, oos: 0, dead: false });
 
 test('entrer dans une zone de contrôle ennemie arrête le mouvement', () => {
-  const me = inf('a', 'us', '5,5', 4);
-  const state = { map, units: [me, inf('x', 'de', '7,5', 4)] };
+  const me = inf('a', 'blue', '5,5', 4);
+  const state = { map, units: [me, inf('x', 'red', '7,5', 4)] };
   const r = reach(state, me);
   assert.equal(r.get('6,5').zoc, true);
   assert.equal(r.has('7,5'), false);
@@ -38,17 +38,17 @@ test('entrer dans une zone de contrôle ennemie arrête le mouvement', () => {
 });
 
 test('une unité ne peut pas dépenser plus que ses PM restants', () => {
-  const me = inf('a', 'us', '8,0', 1);
+  const me = inf('a', 'blue', '8,0', 1);
   assert.equal(reach({ map, units: [me] }, me).has('9,0'), false);
 });
 
 test('une unité qui n\'a pas encore bougé peut toujours avancer d\'un hexagone', () => {
-  const me = inf('a', 'us', '8,0', 1, 1);
+  const me = inf('a', 'blue', '8,0', 1, 1);
   assert.equal(reach({ map, units: [me] }, me).get('9,0').cost, 1);
 });
 
 test('on ne peut pas finir son mouvement sur une pile déjà pleine', () => {
-  const me = inf('a', 'us', '5,5', 4);
-  const state = { map, units: [me, inf('b', 'us', '6,5', 0), inf('c', 'us', '6,5', 0)] };
+  const me = inf('a', 'blue', '5,5', 4);
+  const state = { map, units: [me, inf('b', 'blue', '6,5', 0), inf('c', 'blue', '6,5', 0)] };
   assert.equal(reach(state, me).has('6,5'), false);
 });
