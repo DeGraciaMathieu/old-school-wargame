@@ -4,10 +4,24 @@ import { stepCost, reach } from '../src/rules/movement.js';
 import { TERRAINS } from '../src/config.js';
 import { testMap } from './fixtures.js';
 
-const map = testMap({ forest: ['9,0'], rivers: [['13,4', '12,4'], ['13,0', '14,0']], roads: [['13,4', '12,4']] });
+const map = testMap({ forest: ['9,0', '5,5'], mountain: ['9,8'], rivers: [['13,4', '12,4'], ['13,0', '14,0']], roads: [['13,4', '12,4'], ['4,5', '5,5'], ['9,9', '9,8']] });
 
-test('suivre une route coûte ½ PM, même sur un pont', () => {
-  assert.equal(stepCost(map, '13,4', '12,4', true), 0.5);
+test('suivre une route coûte 1 PM, même sur un pont', () => {
+  assert.equal(stepCost(map, '13,4', '12,4', true), 1);
+});
+
+test('une route en forêt coûte 1 PM, blindés compris', () => {
+  assert.equal(stepCost(map, '4,5', '5,5', true), 1);
+  assert.equal(stepCost(map, '4,5', '5,5', false), 1);
+});
+
+test('entrer en montagne coûte 3 PM à l\'infanterie et 4 aux blindés', () => {
+  assert.equal(stepCost(map, '8,8', '9,8', false), 3);
+  assert.equal(stepCost(map, '8,8', '9,8', true), 4);
+});
+
+test('une route en montagne (col) coûte 1 PM', () => {
+  assert.equal(stepCost(map, '9,9', '9,8', true), 1);
 });
 
 test('entrer en forêt coûte 2 PM à l\'infanterie et 3 aux blindés', () => {

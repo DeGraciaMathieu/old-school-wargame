@@ -1,7 +1,7 @@
 import {
   COLS,ROWS,FOREST_PROB,CLEAR_ALT_SHADE_PROB,TERRAIN_SMOOTH_PASSES,FOREST_GROW_MIN,FOREST_CLEAR_MAX,
   ZONE_WEST_MAX_COL,ZONE_EAST_MIN_COL,RIVER_MIN,RIVER_MAX,RIVER_NS_COLS,RIVER_EW_ROWS,RIVER_NAMES,
-  TOWN_LAYOUT,TOWN_MIN_DIST,TOWN_TRIES,EXITS_PER_SIDE,TOWN_NAMES
+  TOWN_LAYOUT,TOWN_MIN_DIST,TOWN_TRIES,EXITS_PER_SIDE,TOWN_NAMES,MOUNTAIN_MIN,MOUNTAIN_MAX,MOUNTAIN_SIZE
 } from '../config.js';
 import { key, neighbors, hexLine, ek, dist } from './hex.js';
 
@@ -47,6 +47,18 @@ function placeTowns(rand){
   throw new Error('Impossible de placer les villes');
 }
 
+/* Montagnes : massifs de cases contiguës, chacun grandi case par case à partir d'une case tirée dans la bande centrale */
+function mountains(rand,hex){
+  const [c0,c1]=BANDS.center,free=k=>hex[k]&&hex[k].c>=c0&&hex[k].c<=c1&&!hex[k].town&&hex[k].t!=='mountain';
+  const n=between(rand,[MOUNTAIN_MIN,MOUNTAIN_MAX]);
+  for(let i=0;i<n;i++){
+    const cand=Object.keys(hex).filter(free);if(!cand.length)return;
+    const massif=[cand[Math.floor(rand()*cand.length)]],size=between(rand,MOUNTAIN_SIZE);
+    while(massif.length<size){const nx=[...new Set(massif.flatMap(neighbors))].filter(free).filter(k=>!massif.includes(k));if(!nx.length)break;massif.push(nx[Math.floor(rand()*nx.length)]);}
+    for(const k of massif)hex[k].t='mountain';
+  }
+}
+
 /* Routes : arbre couvrant le plus court entre les villes, puis les villes les plus proches de chaque bord
    reliées à ce bord (EXITS_PER_SIDE par camp) */
 function roadsOf(towns){
@@ -74,6 +86,7 @@ export function generateMap(rand){
   const names=shuffle(rand,TOWN_NAMES),placed=placeTowns(rand).map(t=>({...t,c:hex[t.k].c,r:hex[t.k].r}));
   const towns={};
   placed.forEach((t,i)=>{const id='t'+i;towns[id]={c:t.c,r:t.r,name:names[i],t:t.t,vp:t.vp,band:t.band};hex[t.k].t=t.t;hex[t.k].town=id;});
+  mountains(rand,hex);
   const {roads,roadChains,exits}=roadsOf(placed);
   return {hex,rivers:edges,roads,roadChains,towns,riverLines:lines,exits};
 }

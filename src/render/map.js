@@ -10,13 +10,13 @@ import { U, bondsOf, canTarget, curPhase, isAI, occ, store, supplyOf, supplyPath
 export const svg=document.getElementById('map');
 const NS='http://www.w3.org/2000/svg';
 // Aspect de chaque terrain : variante de teinte, motif de remplissage, bâtiments (x, y, largeur, hauteur)
-const LOOK={clear:{alt:true},forest:{fill:'url(#trees)'},
+const LOOK={clear:{alt:true},forest:{fill:'url(#trees)'},mountain:{fill:'url(#relief)'},
   town:{bld:[[-10,-5,5,4],[6,-3,5,5],[-7,6,6,4],[5,6,4,4]]},
   city:{bld:[[-13,-6,6,5],[-6,-9,7,6],[3,-7,8,5],[-11,1,7,5],[-2,0,6,6],[6,1,7,5],[-4,8,9,4]]}};
 // Fond de carte : terrain, routes, rivières et ponts, bâtiments des villes
 export function drawStatic(map){
   svg.setAttribute('viewBox',`0 0 ${SVGW} ${SVGH}`);
-  let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern><pattern id="ihatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(150,30,10,.55)" stroke-width="1.3"/></pattern></defs>`;
+  let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern><pattern id="relief" width="12" height="8" patternUnits="userSpaceOnUse"><rect width="12" height="8" fill="#cbbd9c"/><path d="M1 6.5 L4 2.5 L7 6.5 M6.5 3 L9 0.5 L11.5 3" fill="none" stroke="#8b7656" stroke-width=".9" stroke-linejoin="round"/></pattern><pattern id="ihatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(150,30,10,.55)" stroke-width="1.3"/></pattern></defs>`;
   s+=`<rect width="${SVGW}" height="${SVGH}" fill="#d9cfb2"/>`;
   s+='<g id="terrain">';
   for(const k in map.hex){const h=map.hex[k],lk=LOOK[h.t];s+=`<polygon class="hx ${h.t}${h.alt&&lk.alt?' alt':''}" points="${POLY[k]}" data-k="${k}"${lk.fill?` fill="${lk.fill}"`:''}/>`;}
@@ -67,8 +67,6 @@ function symbol(type){
     case 'inf':return box+X;
     case 'arm':return box+E;
     case 'mech':return box+X+E;
-    case 'ab':return box+X+'<path d="M-4,2.3q2,-2.4 4,0q2,-2.4 4,0" fill="none" stroke="'+ink+'" stroke-width=".9"/>';
-    case 'eng':return box+'<path d="M-5,1V-4.5H5V1M0,-4.5V1" fill="none" stroke="'+ink+'" stroke-width="1"/>';
     case 'td':return box+'<path d="M-6,2.5L0,-6L6,2.5" fill="none" stroke="'+ink+'" stroke-width="1"/>';
   }
   return box;

@@ -85,7 +85,7 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
   (step), PV (points de victoire), ZOC (zone de contrôle), liaison, ravitaillement, coupée,
   isolée, repli, avance après combat, renforts, CRT, ville neutre, bande, initiative. Camps :
   `'blue'` (Bleus, bord ouest) et `'red'` (Rouges, bord est). Types d'unité : `arm`, `mech`, `inf`,
-  `ab`, `eng`, `td`.
+  `td`.
 - Clé d'hexagone : chaîne `'c,r'` (`key(c,r)`, `unkey(k)`). Clé d'arête : `ek(a,b)`.
 
 ## Conventions visuelles et de domaine

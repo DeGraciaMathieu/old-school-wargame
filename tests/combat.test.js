@@ -17,6 +17,14 @@ test('un 3:1 contre une ville est décalé de deux colonnes', () => {
   assert.equal(COLL[o.fin], '3:2');
 });
 
+test('un défenseur en montagne décale le rapport de deux colonnes, sans bonus des blindés', () => {
+  const m = testMap({ mountain: ['5,5'] });
+  const atk = [unit('a', 'red', '4,5', 'arm', 6, 4)];
+  const state = { units: [...atk, unit('d', 'blue', '5,5', 'inf', 1, 2)], attacked: [], map: m };
+  assert.deepEqual(odds(state, '5,5', atk).shifts, [['Défenseur en montagne', -2]]);
+  assert.equal(COLL[odds(state, '5,5', atk).fin], '3:2');
+});
+
 test('le rapport est arrondi en faveur du défenseur', () => {
   const atk = [unit('a', 'red', '4,5', 'inf', 5, 4)];
   const state = { units: [...atk, unit('d', 'blue', '5,5', 'inf', 1, 2)], attacked: [], map };

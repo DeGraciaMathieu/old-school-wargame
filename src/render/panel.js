@@ -15,7 +15,7 @@ function unitMeta(u,ph){
   return `<b>${esc(u.name)}</b><span>${esc(u.div)}${st.length?' · '+st.join(' · '):''}</span>`;
 }
 // Effet du terrain tel qu'il est expliqué au joueur, case par case
-const TERRAIN_NOTE={clear:'1 PM',forest:'2 PM (3 blindés, mécanisés et chasseurs de chars), −1 en défense',town:'−1 en défense',city:'−2 en défense'};
+const TERRAIN_NOTE={clear:'1 PM',forest:'2 PM (3 blindés, mécanisés et chasseurs de chars), −1 en défense',mountain:'3 PM (4 blindés, mécanisés et chasseurs de chars), −2 en défense',town:'−1 en défense',city:'−2 en défense'};
 function hexBlock(k,ph){
   const map=store.state.map,h=map.hex[k],t=h.town?map.towns[h.town]:null,us=unitsAt(k);
   const rivers=neighbors(k).filter(n=>map.rivers[ek(k,n)]).length;

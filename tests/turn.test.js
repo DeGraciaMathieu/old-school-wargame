@@ -62,8 +62,8 @@ test('une partie neuve porte sa graine, sa carte, ses renforts et le contrôle i
   const state = createGame('hotseat', 42);
   assert.equal(state.seed, 42);
   assert.deepEqual(createGame('hotseat', 42).map, state.map);
-  assert.equal(state.units.filter(u => u.pos).length, 16);
-  assert.equal(state.arrivals.length, 6);
+  assert.equal(state.units.filter(u => u.pos).length, 14);
+  assert.equal(state.arrivals.length, 4);
   for (const [id, t] of Object.entries(state.map.towns))
     assert.equal(state.control[id], { west: 'blue', east: 'red', center: null }[t.band]);
 });

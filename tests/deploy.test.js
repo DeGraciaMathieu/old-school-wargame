@@ -34,5 +34,5 @@ test('les deux camps reçoivent le même ordre de bataille', () => {
 test('les renforts entrent par les sorties de route de leur bord', () => {
   const map = maps[0];
   for (const u of armyOf(map, 'red').filter(u => u.turn > 1)) assert.deepEqual(u.entry, map.exits.east);
-  assert.deepEqual(arrivalsOf('blue').map(a => a.text), ['1 blindé et 1 mécanisé, bord ouest', '2 parachutistes, bord ouest', '1 chasseur de chars, bord ouest']);
+  assert.deepEqual(arrivalsOf('blue').map(a => a.text), ['1 blindé et 1 mécanisé, bord ouest', '1 chasseur de chars, bord ouest']);
 });

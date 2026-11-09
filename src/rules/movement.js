@@ -3,7 +3,7 @@ import { neighbors, ek } from './hex.js';
 import { other, isMech, mpOf } from './units.js';
 import { occ, stackCount, zocOf, bondsOf } from './control.js';
 
-// Coût en PM pour passer de a à b : route ½, forêt 2 (3 mécanisés), rivière hors pont +2
+// Coût en PM pour passer de a à b : route 1 (forêt et pont compris), forêt 2 (3 mécanisés), rivière hors pont +2
 export function stepCost(map,a,b,mech){if(map.roads[ek(a,b)])return ROAD_COST;const tc=TERRAINS[map.hex[b].t].cost;let c=mech?tc.mech:tc.inf;if(map.rivers[ek(a,b)])c+=RIVER_CROSSING_COST;return c;}
 
 /* Cases atteignables : Dijkstra sur les PM restants, arrêt en ZOC ennemie, pas de ZOC à ZOC,

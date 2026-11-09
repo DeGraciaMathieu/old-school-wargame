@@ -12,6 +12,7 @@ export const TERRAIN_SMOOTH_PASSES=2, FOREST_GROW_MIN=4, FOREST_CLEAR_MAX=1;
 export const TERRAINS={
   clear:{label:'Dégagé',cost:{mech:1,inf:1},shift:0,armorShift:+1,cover:false},
   forest:{label:'Forêt',cost:{mech:3,inf:2},shift:-1,shiftLabel:'Défenseur en forêt',armorShift:0,cover:true},
+  mountain:{label:'Montagne',cost:{mech:4,inf:3},shift:-2,shiftLabel:'Défenseur en montagne',armorShift:0,cover:true},
   town:{label:'Village',cost:{mech:1,inf:1},shift:-1,shiftLabel:'Défenseur dans un village',armorShift:0,cover:true},
   city:{label:'Ville',cost:{mech:1,inf:1},shift:-2,shiftLabel:'Défenseur dans la ville',armorShift:0,cover:true}
 };
@@ -21,6 +22,9 @@ export const TERRAINS={
 export const ZONE_WEST_MAX_COL=4, ZONE_EAST_MIN_COL=11;
 // Rivières : nombre tiré entre RIVER_MIN et RIVER_MAX ; colonnes (nord-sud) ou lignes (est-ouest) où passe la rive
 export const RIVER_MIN=1, RIVER_MAX=2, RIVER_NS_COLS=[3,13], RIVER_EW_ROWS=[2,10];
+// Montagnes : nombre de massifs tiré entre MOUNTAIN_MIN et MOUNTAIN_MAX, chacun de MOUNTAIN_SIZE cases contiguës,
+// dans la bande centrale et jamais sur une ville
+export const MOUNTAIN_MIN=2, MOUNTAIN_MAX=3, MOUNTAIN_SIZE=[3,5];
 export const RIVER_NAMES=['Sarne','Lisance','Orvane','Mézère','Ardoise','Vaudre'];
 // Villes de chaque bande latérale (identiques à l'ouest et à l'est) et de la bande centrale, neutre au départ
 export const TOWN_LAYOUT={side:[{t:'town',vp:2},{t:'town',vp:1},{t:'town',vp:0}],center:[{t:'city',vp:3},{t:'town',vp:1},{t:'town',vp:1}]};
@@ -29,7 +33,7 @@ export const TOWN_MIN_DIST=3, TOWN_TRIES=50, EXITS_PER_SIDE=2;
 export const TOWN_NAMES=['Valbrune','Hautrive','Morlanne','Brévannes','Ostrand','Kellmarch','Lorvic','Sarnac','Vescourt','Altheim','Dornay','Roquelin','Faverge','Grisbach','Montaval','Tiercelin'];
 
 /* ---------- Mouvement ---------- */
-export const ROAD_COST=0.5, RIVER_CROSSING_COST=2;
+export const ROAD_COST=1, RIVER_CROSSING_COST=2;
 export const STACK_LIMIT=2;
 // Liaison : deux unités amies à cette distance tiennent les cases qui les séparent
 export const BOND_RANGE=2;
@@ -41,15 +45,13 @@ export const OOB_TEMPLATE=[
   {type:'arm',v:[6,4,6],rv:[3,2,6]},{type:'arm',v:[6,4,6],rv:[3,2,6]},
   {type:'mech',v:[5,4,5],rv:[3,2,5]},{type:'mech',v:[5,4,5],rv:[3,2,5]},
   {type:'inf',v:[4,4,4],rv:[2,2,4]},{type:'inf',v:[4,4,4],rv:[2,2,4]},{type:'inf',v:[4,4,4],rv:[2,2,4]},
-  {type:'eng',v:[1,2,4],rv:[1,2,4],steps:1},
   {type:'arm',v:[6,4,6],rv:[3,2,6],turn:3},{type:'mech',v:[5,4,5],rv:[3,2,5],turn:3},
-  {type:'ab',v:[3,5,4],rv:[2,3,4],turn:5},{type:'ab',v:[3,5,4],rv:[2,3,4],turn:5},
   {type:'td',v:[3,2,6],rv:[2,1,6],turn:6}
 ];
 // Types d'unité : abréviation sur le pion, nom au singulier et au pluriel (annonces de renforts)
 export const UNIT_TYPES={arm:{abbr:'Bld',one:'blindé',many:'blindés'},mech:{abbr:'Méca',one:'mécanisé',many:'mécanisés'},
-  inf:{abbr:'Inf',one:'bataillon d\'infanterie',many:'bataillons d\'infanterie'},ab:{abbr:'Para',one:'parachutiste',many:'parachutistes'},
-  eng:{abbr:'Génie',one:'génie',many:'génies'},td:{abbr:'CC',one:'chasseur de chars',many:'chasseurs de chars'}};
+  inf:{abbr:'Inf',one:'bataillon d\'infanterie',many:'bataillons d\'infanterie'},
+  td:{abbr:'CC',one:'chasseur de chars',many:'chasseurs de chars'}};
 // Garnisons de départ : types placés d'abord dans les villes à PV de leur camp
 export const GARRISON_TYPES=['inf'];
 

@@ -198,6 +198,15 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
     remplace `ENTRY_MIN` ;
   - couleurs des camps nommées `--bleu` et `--rouge`, parce que `--red` sert déjà aux alertes ;
   - l'IA n'avance après combat qu'avec une unité qui n'est pas en garnison sur une ville à PV de son camp.
+- Route à 1 PM (`ROAD_COST=1`, ½ PM dans le Saillant) : sur une carte de 16 colonnes, avec des routes tracées
+  droites entre les villes, un blindé parcourait 12 hexagones par phase. La route n'accélère plus, elle évite le
+  coût de la forêt et de la rivière (pont).
+- Montagne (`TERRAINS.mountain`) : 3 PM, 4 pour les mécanisés, défenseur −2, couvert. `MOUNTAIN_MIN` à
+  `MOUNTAIN_MAX` massifs de `MOUNTAIN_SIZE` cases, tirés après les villes, dans la bande centrale seulement pour ne
+  favoriser aucun camp, jamais sur une ville. Une route la traverse à 1 PM (col). Toutes les cartes d'une graine
+  donnée changent.
+- Génie (`eng`) et parachutistes (`ab`) retirés de l'ordre de bataille et de `UNIT_TYPES` : ils n'avaient aucune
+  règle propre. `DEFAULT_STEPS` et le champ `steps` du modèle restent, sans unité qui s'en serve.
 
 ## Questions ouvertes de Terra Incognita
 

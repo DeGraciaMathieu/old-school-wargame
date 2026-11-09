@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateMap } from '../src/rules/mapgen.js';
+import { generateMap, BANDS } from '../src/rules/mapgen.js';
 import { createRng } from '../src/rules/rng.js';
 import { unkey, dist } from '../src/rules/hex.js';
-import { COLS, ROWS, RIVER_MIN, RIVER_MAX, TOWN_MIN_DIST, TERRAINS } from '../src/config.js';
+import { COLS, ROWS, MOUNTAIN_MIN, MOUNTAIN_MAX, MOUNTAIN_SIZE, RIVER_MIN, RIVER_MAX, TOWN_MIN_DIST, TERRAINS } from '../src/config.js';
 
 const gen = seed => generateMap(createRng(seed));
 const maps = Array.from({ length: 1000 }, (_, i) => gen(i + 1));
@@ -65,4 +65,13 @@ test('sur 1000 graines, le nombre de rivières reste entre RIVER_MIN et RIVER_MA
 test('sur 1000 graines, on trouve des rivières nord-sud et des rivières est-ouest', () => {
   const dirs = new Set(maps.flatMap(m => m.riverLines.map(l => l.dir)));
   assert.deepEqual([...dirs].sort(), ['ew', 'ns']);
+});
+
+test('sur 1000 graines, les montagnes sont dans la bande centrale, jamais sur une ville, en nombre borné', () => {
+  const [c0, c1] = BANDS.center;
+  for (const map of maps) {
+    const m = Object.values(map.hex).filter(h => h.t === 'mountain');
+    assert.ok(m.length >= MOUNTAIN_MIN && m.length <= MOUNTAIN_MAX * MOUNTAIN_SIZE[1]);
+    for (const h of m) assert.ok(h.c >= c0 && h.c <= c1 && !h.town, h.k);
+  }
 });

@@ -1,12 +1,12 @@
 import { COLS, ROWS } from '../src/config.js';
 import { key, ek } from '../src/rules/hex.js';
 
-// Carte de test entièrement dégagée, avec forêts, villes, rivières et routes posées à la main
-export function testMap({ forest = [], towns = {}, rivers = [], roads = [] } = {}) {
+// Carte de test entièrement dégagée, avec forêts, montagnes, villes, rivières et routes posées à la main
+export function testMap({ forest = [], mountain = [], towns = {}, rivers = [], roads = [] } = {}) {
   const hex = {};
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const k = key(c, r);
-    hex[k] = { c, r, k, t: forest.includes(k) ? 'forest' : 'clear', alt: false };
+    hex[k] = { c, r, k, t: forest.includes(k) ? 'forest' : mountain.includes(k) ? 'mountain' : 'clear', alt: false };
   }
   const tw = {};
   for (const [id, t] of Object.entries(towns)) {
