@@ -1,6 +1,5 @@
-import { BLAST_LIFETIME, FX_LIFETIME, MOVE_ANIM_FALLBACK, MOVE_MS_PER_HEX, PAD, PHASES, R, SHOW_POCKETS, TOWNS, OOS_CUT, OOS_ISOLATED } from '../config.js';
+import { BLAST_LIFETIME, FX_LIFETIME, MOVE_ANIM_FALLBACK, MOVE_MS_PER_HEX, PAD, PHASES, R, SHOW_POCKETS, OOS_CUT, OOS_ISOLATED } from '../config.js';
 import { DE, DO, key, neighbors, unkey } from '../rules/hex.js';
-import { HEX, riverEdge, roadChains, roadEdges } from '../rules/map.js';
 import { isMech, onMap, other, vals } from '../rules/units.js';
 import { AUDIO } from './audio.js';
 import { HW, POLY, SVGH, SVGW, center, ck, corners } from './geometry.js';
@@ -10,18 +9,19 @@ import { U, bondsOf, canTarget, isAI, occ, store, supplyOf, supplyPath, unitsAt,
 /* ---------- Rendu de la carte ---------- */
 export const svg=document.getElementById('map');
 const NS='http://www.w3.org/2000/svg';
-export function drawStatic(){
+// Fond de carte : terrain, routes, rivières et ponts, bâtiments des villes
+export function drawStatic(map){
   svg.setAttribute('viewBox',`0 0 ${SVGW} ${SVGH}`);
   let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern><pattern id="ihatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(150,30,10,.55)" stroke-width="1.3"/></pattern></defs>`;
   s+=`<rect width="${SVGW}" height="${SVGH}" fill="#d9cfb2"/>`;
   s+='<g id="terrain">';
-  for(const k in HEX){const h=HEX[k];s+=`<polygon class="hx ${h.t}${h.alt&&h.t==='clear'?' alt':''}" points="${POLY[k]}" data-k="${k}"${h.t==='forest'?' fill="url(#trees)"':''}/>`;}
+  for(const k in map.hex){const h=map.hex[k];s+=`<polygon class="hx ${h.t}${h.alt&&h.t==='clear'?' alt':''}" points="${POLY[k]}" data-k="${k}"${h.t==='forest'?' fill="url(#trees)"':''}/>`;}
   s+='</g><g id="feat" pointer-events="none">';
-  for(const ch of roadChains){const d='M'+ch.map(k=>ck(k).map(v=>v.toFixed(1)).join(',')).join('L');s+=`<path class="road-c" d="${d}"/>`;}
-  for(const ch of roadChains){const d='M'+ch.map(k=>ck(k).map(v=>v.toFixed(1)).join(',')).join('L');s+=`<path class="road" d="${d}"/>`;}
-  for(const [e] of riverEdge){const [a,b]=e.split('|');const [bx,by]=ck(b);const cs=corners(a).map(p=>[p,Math.hypot(p[0]-bx,p[1]-by)]).sort((x,y)=>x[1]-y[1]).slice(0,2).map(x=>x[0]);s+=`<line class="river" x1="${cs[0][0].toFixed(1)}" y1="${cs[0][1].toFixed(1)}" x2="${cs[1][0].toFixed(1)}" y2="${cs[1][1].toFixed(1)}"/>`;
-    if(roadEdges.has(e)){const mx=(cs[0][0]+cs[1][0])/2,my=(cs[0][1]+cs[1][1])/2;const [ax,ay]=ck(a);const ang=Math.atan2(by-ay,bx-ax)*180/Math.PI;s+=`<rect class="bridge" x="-5" y="-2.6" width="10" height="5.2" transform="translate(${mx.toFixed(1)},${my.toFixed(1)}) rotate(${ang.toFixed(1)})"/>`;}}
-  for(const id in TOWNS){const t=TOWNS[id];const [x,y]=center(t.c,t.r);
+  for(const ch of map.roadChains){const d='M'+ch.map(k=>ck(k).map(v=>v.toFixed(1)).join(',')).join('L');s+=`<path class="road-c" d="${d}"/>`;}
+  for(const ch of map.roadChains){const d='M'+ch.map(k=>ck(k).map(v=>v.toFixed(1)).join(',')).join('L');s+=`<path class="road" d="${d}"/>`;}
+  for(const e in map.rivers){const [a,b]=e.split('|');const [bx,by]=ck(b);const cs=corners(a).map(p=>[p,Math.hypot(p[0]-bx,p[1]-by)]).sort((x,y)=>x[1]-y[1]).slice(0,2).map(x=>x[0]);s+=`<line class="river" x1="${cs[0][0].toFixed(1)}" y1="${cs[0][1].toFixed(1)}" x2="${cs[1][0].toFixed(1)}" y2="${cs[1][1].toFixed(1)}"/>`;
+    if(map.roads[e]){const mx=(cs[0][0]+cs[1][0])/2,my=(cs[0][1]+cs[1][1])/2;const [ax,ay]=ck(a);const ang=Math.atan2(by-ay,bx-ax)*180/Math.PI;s+=`<rect class="bridge" x="-5" y="-2.6" width="10" height="5.2" transform="translate(${mx.toFixed(1)},${my.toFixed(1)}) rotate(${ang.toFixed(1)})"/>`;}}
+  for(const id in map.towns){const t=map.towns[id];const [x,y]=center(t.c,t.r);
     const b=t.t==='city'?[[-13,-6,6,5],[-6,-9,7,6],[3,-7,8,5],[-11,1,7,5],[-2,0,6,6],[6,1,7,5],[-4,8,9,4]]:[[-10,-5,5,4],[6,-3,5,5],[-7,6,6,4],[5,6,4,4]];
     for(const r of b)s+=`<rect class="bld" x="${(x+r[0]).toFixed(1)}" y="${(y+r[1]).toFixed(1)}" width="${r[2]}" height="${r[3]}"/>`;}
   const [ox,oy]=center(13,10);s+=`<text class="rlabel" transform="translate(${(ox+HW*0.48).toFixed(0)},${(oy+R*0.9).toFixed(0)}) rotate(-72)">Our</text>`;
@@ -108,7 +108,8 @@ export function renderMap(){
   if(su&&onMap(su)&&!store.state.over){const p=supplyPath(su.side,su.pos);if(p){const pts=p.map(ck);pts.push([su.side==='us'?2:SVGW-2,pts[pts.length-1][1]]);const d='M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L');sl=`<g class="supl ${su.side}"><path class="h" d="${d}"/><path class="b" d="${d}"/><path class="f" d="${d}"/></g>`;}}
   svg.querySelector('#supline').innerHTML=sl;svg.querySelector('#pklabels').innerHTML=pkL;
   let l='';
-  for(const id in TOWNS){const t=TOWNS[id];const [x,y]=center(t.c,t.r);l+=`<text class="tlabel" x="${x.toFixed(1)}" y="${(y+24).toFixed(1)}">${t.name}</text>`;
+  const towns=store.state.map.towns;
+  for(const id in towns){const t=towns[id];const [x,y]=center(t.c,t.r);l+=`<text class="tlabel" x="${x.toFixed(1)}" y="${(y+24).toFixed(1)}">${t.name}</text>`;
     if(t.vp)l+=`<g class="vp"><circle class="${store.state.control[id]}" cx="${x.toFixed(1)}" cy="${(y-20).toFixed(1)}" r="6"/><text x="${x.toFixed(1)}" y="${(y-17.2).toFixed(1)}">${t.vp}</text></g>`;}
   svg.querySelector('#labels').innerHTML=l;
   LIVE_CUT=new Set();

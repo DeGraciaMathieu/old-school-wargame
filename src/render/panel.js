@@ -1,6 +1,5 @@
-import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TOWNS, TURNS, OOS_ISOLATED } from '../config.js';
+import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TURNS, OOS_ISOLATED } from '../config.js';
 import { ek, neighbors } from '../rules/hex.js';
-import { HEX, riverEdge } from '../rules/map.js';
 import { atkOf, other, vals } from '../rules/units.js';
 import { esc, turnLabel } from './labels.js';
 import { LIVE_CUT, counterIcon } from './map.js';
@@ -15,8 +14,8 @@ function unitMeta(u,ph){
   return `<b>${esc(u.name)}</b><span>${esc(u.div)}${st.length?' · '+st.join(' · '):''}</span>`;
 }
 function hexBlock(k,ph){
-  const h=HEX[k],t=h.town?TOWNS[h.town]:null,us=unitsAt(k);
-  const rivers=neighbors(k).filter(n=>riverEdge.has(ek(k,n))).length;
+  const map=store.state.map,h=map.hex[k],t=h.town?map.towns[h.town]:null,us=unitsAt(k);
+  const rivers=neighbors(k).filter(n=>map.rivers[ek(k,n)]).length;
   let s=`<div class="box"><span class="eyebrow">Hexagone ${k}</span><h3>${t?t.name:TERRAIN[h.t]}</h3><dl class="kv"><dt>Terrain</dt><dd>${TERRAIN[h.t]}${h.t==='forest'?' · 2 PM (3 blindés), −1 en défense':h.t==='town'?' · −1 en défense':h.t==='city'?' · −2 en défense':' · 1 PM'}</dd>`;
   if(rivers)s+=`<dt>Rivière</dt><dd>+2 PM pour la traverser hors pont</dd>`;
   const bd=['de','us'].find(sd=>bondsOf(sd).has(k));
@@ -29,11 +28,11 @@ function hexBlock(k,ph){
 }
 function combatBlock(ph){
   const k=store.sel.target,cands=eligibleAttackers(k,ph.side),atk=cands.filter(u=>store.sel.attackers.has(u.id));
-  const defs=unitsAt(k).filter(u=>u.side!==ph.side);
-  let s=`<div class="box"><span class="eyebrow">Attaque</span><h3>${HEX[k].town?TOWNS[HEX[k].town].name:TERRAIN[HEX[k].t]}</h3><div class="units">`;
+  const defs=unitsAt(k).filter(u=>u.side!==ph.side),map=store.state.map,h=map.hex[k];
+  let s=`<div class="box"><span class="eyebrow">Attaque</span><h3>${h.town?map.towns[h.town].name:TERRAIN[h.t]}</h3><div class="units">`;
   for(const d of defs)s+=`<div class="ucard" style="cursor:default">${counterIcon(d)}<span class="meta"><b>${esc(d.name)}</b><span>Défense ${vals(d)[1]}</span></span></div>`;
   s+='</div><p class="hint" style="margin:10px 0 6px">Unités qui participent :</p><div class="units">';
-  for(const a of cands)s+=`<label class="chk"><input type="checkbox" data-act="toggle" data-id="${a.id}"${store.sel.attackers.has(a.id)?' checked':''}>${counterIcon(a)}<span class="meta" style="font-size:13px"><b style="font-family:var(--f-cond);font-size:16px;display:block">${esc(a.name)}</b><span style="color:var(--muted)">Attaque ${atkOf(a)}${a.oos?' (coupée)':''}${riverEdge.has(ek(a.pos,k))?' · à travers la rivière':''}</span></span></label>`;
+  for(const a of cands)s+=`<label class="chk"><input type="checkbox" data-act="toggle" data-id="${a.id}"${store.sel.attackers.has(a.id)?' checked':''}>${counterIcon(a)}<span class="meta" style="font-size:13px"><b style="font-family:var(--f-cond);font-size:16px;display:block">${esc(a.name)}</b><span style="color:var(--muted)">Attaque ${atkOf(a)}${a.oos?' (coupée)':''}${map.rivers[ek(a.pos,k)]?' · à travers la rivière':''}</span></span></label>`;
   s+='</div>';
   if(!atk.length)return s+'<p class="hint" style="margin-top:10px">Cochez au moins une unité.</p><div class="btns"><button class="btn ghost" type="button" data-act="cancel">Annuler</button></div></div>';
   const o=odds(k,atk);

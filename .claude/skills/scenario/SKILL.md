@@ -12,9 +12,9 @@ auto_invoke: true
 | --- | --- | --- |
 | Grille | `COLS`×`ROWS` (16×12), hexagones pointe en haut, lignes impaires décalées — `src/rules/hex.js` | Clé `'c,r'` |
 | Terrain | `buildMap(seed)` — `src/rules/map.js` | `mulberry(MAP_SEED)` : forêts par bande de colonnes (`FOREST_PROB*`, `FOREST_*_COL`), lissage `TERRAIN_SMOOTH_PASSES`, teinte `alt` (`CLEAR_ALT_SHADE_PROB`) ; types `clear`, `forest`, `town`, `city` (libellés `TERRAIN`) |
-| Villes | `TOWNS` — `config.js` | `{c,r,name,t,vp}` ; `HEX[k].town` ; `townKey(id)` |
-| Rivières | `RIVERS` (`b[r]` = première colonne de la rive est) → `riverEdge` | `eastOfOur(k)` |
-| Routes | `ROADS` (points de passage : villes ou `'c,r'`) → `roadEdges`, `roadChains` via `hexLine` | Ponts dessinés là où une route coupe une rivière |
+| Villes | `TOWNS` — `config.js` | `{c,r,name,t,vp}` ; `map.hex[k].town` ; `map.towns` ; `townKey(map,id)` |
+| Rivières | `RIVERS` (`b[r]` = première colonne de la rive est) → `map.rivers` | `eastOfOur(map,k)` |
+| Routes | `ROADS` (points de passage : villes ou `'c,r'`) → `map.roads`, `map.roadChains` via `hexLine` | Ponts dessinés là où une route coupe une rivière |
 | Ordre de bataille | `OOB` — `config.js` | `{id,side,name,div,type,v,rv,at}` (`steps` facultatif, `DEFAULT_STEPS` sinon) ; renforts : `turn` + `entry[]` |
 | Annonces de renforts | `ARRIVALS` — `config.js` | Texte du journal, de la piste et du panneau « Renforts à venir » |
 | Entrée des renforts | `arrive` (interne) / `freeHexNear` — `src/rules/turn.js` | Au début du mouvement de leur camp, à leur tour ; première entrée libre, sinon case libre la plus proche |
@@ -27,7 +27,7 @@ auto_invoke: true
 | Fin de partie | `endGame()` — `src/loop/turn.js` | Après la dernière phase du tour `TURNS` |
 | Sauvegarde | `save()` / `loadSaved()` — `src/state/store.js`, clé `SAVE_KEY` | État brut en JSON ; une partie terminée n'est pas proposée à la reprise |
 | Journal | `state.log` (au plus `LOG_MAX`), `pushLog` — `src/rules/journal.js` | `{t,text,side}`, entrées en tête |
-| Affichage | `drawStatic` (une seule fois) et `renderMap` — `src/render/map.js` ; `renderTrack`, `renderScore` (badge de score dépliable : barre, seuils, villes à PV ; ouvert si `store.scoreOpen`) — `src/render/hud.js` ; `renderPanel` | — |
+| Affichage | `drawStatic(map)` (au chargement, puis à chaque partie neuve ou reprise) et `renderMap` — `src/render/map.js` ; `renderTrack`, `renderScore` (badge de score dépliable : barre, seuils, villes à PV ; ouvert si `store.scoreOpen`) — `src/render/hud.js` ; `renderPanel` | — |
 
 ## Ajouter une unité ou un renfort
 

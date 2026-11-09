@@ -1,12 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { beginPhase, nextPhase } from '../src/rules/turn.js';
+import { buildMap } from '../src/rules/map.js';
+import { MAP_SEED } from '../src/config.js';
+
+const map = buildMap(MAP_SEED);
 
 const unit = (id, side, pos, extra = {}) => ({
   id, side, pos, name: id, type: 'inf', v: [2, 3, 4], rv: [1, 2, 4], max: 2, steps: 2,
   oos: 0, mp: 0, attacked: false, dead: false, arrived: true, ...extra,
 });
-const game = (phase, turn, units, control = {}) => ({ mode: 'hotseat', turn, phase, control, attacked: [], log: [], over: false, units });
+const game = (phase, turn, units, control = {}) => ({ mode: 'hotseat', turn, phase, control, attacked: [], log: [], over: false, units, map });
 
 test('les phases s\'enchaînent, et la partie s\'arrête après les combats américains du tour 8', () => {
   assert.deepEqual(nextPhase({ turn: 2, phase: 1 }), { turn: 2, phase: 2 });

@@ -55,7 +55,9 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
 
 ### État
 
-- La partie vit dans `store.state` : `{mode, turn, phase, control, attacked, log, over, units}`.
+- La partie vit dans `store.state` : `{mode, turn, phase, control, attacked, log, over, units, map}`.
+  `map` est la carte de la partie, en JSON simple : `{hex, rivers, roads, roadChains, towns}`
+  (`rivers` et `roads` indexés par clé d'arête). Les règles la lisent dans `state.map`, jamais dans un module.
   Une unité porte `id, side, name, div, type, v, rv, max, steps, pos, arrived, mp, attacked,
   dead, oos` (+ `turn`, `entry` pour les renforts).
 - L'état d'interface vit à côté : `store.busy`, `store.undo`, `store.sel`, `store.zoom`,

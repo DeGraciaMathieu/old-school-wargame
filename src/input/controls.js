@@ -4,14 +4,14 @@ import { endPhase, newGame } from '../loop/turn.js';
 import { AUDIO } from '../render/audio.js';
 import { render } from '../render/index.js';
 import { renderScore, scoreEl } from '../render/hud.js';
-import { applyZoom } from '../render/map.js';
+import { applyZoom, drawStatic } from '../render/map.js';
 import { closeModal, modal, rulesScreen, sheet, startScreen } from '../render/sheets.js';
 import { isAI, loadSaved, store } from '../state/store.js';
 
 /* ---------- Interactions : fenêtres, zoom, son ---------- */
 sheet.addEventListener('click',e=>{
   const m=e.target.closest('[data-mode]');if(m){fieldCache.clear();newGame(m.getAttribute('data-mode'));return;}
-  if(e.target.closest('[data-resume]')){store.state=loadSaved();closeModal();store.undo=[];store.sel={};render();const ph=PHASES[store.state.phase];if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);return;}
+  if(e.target.closest('[data-resume]')){store.state=loadSaved();drawStatic(store.state.map);closeModal();store.undo=[];store.sel={};render();const ph=PHASES[store.state.phase];if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);return;}
   if(e.target.closest('[data-rules]')){rulesScreen();return;}
   if(e.target.closest('[data-end-confirm]')){closeModal();store.sel={};endPhase();return;}
   if(e.target.closest('[data-close]')){if(store.state)closeModal();else startScreen();}

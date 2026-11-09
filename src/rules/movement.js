@@ -1,11 +1,10 @@
 import { ROAD_COST, FOREST_COST_MECH, FOREST_COST_INF, CLEAR_COST, RIVER_CROSSING_COST, STACK_LIMIT } from '../config.js';
 import { neighbors, ek } from './hex.js';
-import { HEX, riverEdge, roadEdges } from './map.js';
 import { other, isMech, mpOf } from './units.js';
 import { occ, stackCount, zocOf, bondsOf } from './control.js';
 
 // Coût en PM pour passer de a à b : route ½, forêt 2 (3 mécanisés), rivière hors pont +2
-export function stepCost(a,b,mech){if(roadEdges.has(ek(a,b)))return ROAD_COST;let c=HEX[b].t==='forest'?(mech?FOREST_COST_MECH:FOREST_COST_INF):CLEAR_COST;if(riverEdge.has(ek(a,b)))c+=RIVER_CROSSING_COST;return c;}
+export function stepCost(map,a,b,mech){if(map.roads[ek(a,b)])return ROAD_COST;let c=map.hex[b].t==='forest'?(mech?FOREST_COST_MECH:FOREST_COST_INF):CLEAR_COST;if(map.rivers[ek(a,b)])c+=RIVER_CROSSING_COST;return c;}
 
 /* Cases atteignables : Dijkstra sur les PM restants, arrêt en ZOC ennemie, pas de ZOC à ZOC,
    cases ennemies et liaisons ennemies interdites ; une unité qui n'a pas bougé avance toujours d'une case */
@@ -20,7 +19,7 @@ export function reach(state,u){
     for(const n of neighbors(k)){
       if(eo.has(n)||eb.has(n))continue;
       if(ez.has(k)&&ez.has(n))continue;
-      let nd=d+stepCost(k,n,mech);
+      let nd=d+stepCost(state.map,k,n,mech);
       if(nd>u.mp+1e-9){if(k===start&&full&&u.mp>0)nd=u.mp;else continue;}
       if(!best.has(n)||nd<best.get(n)-1e-9){best.set(n,nd);prev.set(n,k);pq.push([nd,n]);}
     }

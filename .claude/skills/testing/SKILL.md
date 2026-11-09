@@ -31,7 +31,7 @@ test : si un test semble en réclamer une, c'est que la règle n'est pas assez p
 - **Transitions** : vérifier aussi que l'état reçu n'est pas modifié
   (`structuredClone` avant, `assert.deepEqual` après).
 - Un ou deux tests par règle : le cas nominal et le cas limite qui justifie la règle.
-- Les coordonnées viennent de la vraie carte (`HEX` généré avec `MAP_SEED`). Vérifier le
+- Les coordonnées viennent de la vraie carte (`buildMap(MAP_SEED)`, passée dans `state.map` des fabriques d'état). Vérifier le
   terrain d'une case avant de s'en servir (ex. `5,5` dégagé, `2,7` Bastogne, `8,0` → `9,0` forêt).
 
 ## Fichier de test → périmètre couvert

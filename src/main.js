@@ -1,4 +1,5 @@
-import { MOBILE_MAX_WIDTH, ZOOM_INIT_MAX, ZOOM_INIT_MIN } from './config.js';
+import { MAP_SEED, MOBILE_MAX_WIDTH, ZOOM_INIT_MAX, ZOOM_INIT_MIN } from './config.js';
+import { buildMap } from './rules/map.js';
 import { syncSound } from './input/controls.js';
 import { SVGW } from './render/geometry.js';
 import { applyZoom, drawStatic, scroller } from './render/map.js';
@@ -11,7 +12,8 @@ import './input/actions.js';
 // Dés de combat : Math.random conservé pour garder la séquence de tirages d'origine
 useDice(Math.random);
 syncSound();
-drawStatic();
+// Carte du scénario affichée derrière l'écran de départ ; chaque partie redessine la sienne
+drawStatic(buildMap(MAP_SEED));
 store.zoom=Math.max(ZOOM_INIT_MIN,Math.min(ZOOM_INIT_MAX,(scroller.clientWidth-2)/SVGW));applyZoom();
 if(innerWidth<MOBILE_MAX_WIDTH)scroller.scrollLeft=scroller.scrollWidth;
 startScreen();

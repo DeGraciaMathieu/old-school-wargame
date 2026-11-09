@@ -35,7 +35,7 @@ auto_invoke: true
 
 1. Déclarer `SHIFT_<NOM>` dans `src/config.js`, section Combat.
 2. Dans `odds()` (`src/rules/combat.js`), pousser `['Libellé affiché', SHIFT_<NOM>]` dans
-   `shifts` sous la bonne condition (lire `HEX[k]`, `atk`, `defs`).
+   `shifts` sous la bonne condition (lire `state.map.hex[k]`, `atk`, `defs`).
 3. Ajouter un test dans `tests/combat.test.js` qui construit l'attaque et vérifie
    `COLL[odds(...).fin]`.
 4. Mettre à jour le texte « Le rapport attaque/défense est arrondi… » de `rulesScreen`

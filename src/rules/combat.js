@@ -1,6 +1,5 @@
-import { TOWNS, TERRAIN, STACK_LIMIT, COLL, TH, CRT, RES, DIE_SIDES, RETREAT_ZOC_PENALTY, RETREAT_DIST_WEIGHT, RETREAT_COVER_BONUS, SHIFT_FOREST, SHIFT_TOWN, SHIFT_CITY, SHIFT_RIVER, SHIFT_ARMOR_CLEAR } from '../config.js';
+import { TERRAIN, STACK_LIMIT, COLL, TH, CRT, RES, DIE_SIDES, RETREAT_ZOC_PENALTY, RETREAT_DIST_WEIGHT, RETREAT_COVER_BONUS, SHIFT_FOREST, SHIFT_TOWN, SHIFT_CITY, SHIFT_RIVER, SHIFT_ARMOR_CLEAR } from '../config.js';
 import { neighbors, dist, ek } from './hex.js';
-import { HEX, riverEdge } from './map.js';
 import { other, onMap, vals, atkOf } from './units.js';
 import { unitsAt, occ, stackCount, zocOf, bondsOf } from './control.js';
 import { pushLog } from './journal.js';
@@ -12,11 +11,11 @@ export function odds(state,k,atk){
   const defs=unitsAt(state,k).filter(u=>u.side!==atk[0].side);
   const A=atk.reduce((s,u)=>s+atkOf(u),0),D=defs.reduce((s,u)=>s+vals(u)[1],0);
   let col=-1;for(let i=0;i<TH.length;i++)if(A>=TH[i]*D-1e-9)col=i;
-  const shifts=[];const t=HEX[k].t;
+  const shifts=[];const t=state.map.hex[k].t;
   if(t==='forest')shifts.push(['Défenseur en forêt',SHIFT_FOREST]);
   if(t==='town')shifts.push(['Défenseur dans un village',SHIFT_TOWN]);
   if(t==='city')shifts.push(['Défenseur dans la ville',SHIFT_CITY]);
-  if(atk.every(a=>riverEdge.has(ek(a.pos,k))))shifts.push(['Attaque à travers une rivière',SHIFT_RIVER]);
+  if(atk.every(a=>state.map.rivers[ek(a.pos,k)]))shifts.push(['Attaque à travers une rivière',SHIFT_RIVER]);
   if(t==='clear'&&atk.some(a=>a.type==='arm')&&!defs.some(d=>d.type==='arm'||d.type==='td'))shifts.push(['Blindés en terrain dégagé',SHIFT_ARMOR_CLEAR]);
   const sh=shifts.reduce((s,x)=>s+x[1],0);
   const fin=col<0?-1:Math.max(0,Math.min(CRT.length-1,col+sh));
@@ -37,7 +36,7 @@ function retreatUnit(s,u,n,enemy,fromHexes,captures){
     const eo=occ(s,enemy),ez=zocOf(s,enemy),eb=bondsOf(s,enemy);
     const c=neighbors(cur).filter(h=>!seen.has(h)&&!eo.has(h)&&!eb.has(h)&&stackCount(s,h,u.side,u)<STACK_LIMIT);
     if(!c.length){lost+=n-i;break;}
-    const score=h=>{const z=ez.has(h)&&stackCount(s,h,u.side,u)===0;const d=Math.min(...fromHexes.map(f=>dist(f,h)));const dir=u.side==='us'?-HEX[h].c:HEX[h].c;return (z?RETREAT_ZOC_PENALTY:0)+d*RETREAT_DIST_WEIGHT+dir+(HEX[h].t!=='clear'?RETREAT_COVER_BONUS:0);};
+    const score=h=>{const z=ez.has(h)&&stackCount(s,h,u.side,u)===0;const d=Math.min(...fromHexes.map(f=>dist(f,h)));const dir=u.side==='us'?-s.map.hex[h].c:s.map.hex[h].c;return (z?RETREAT_ZOC_PENALTY:0)+d*RETREAT_DIST_WEIGHT+dir+(s.map.hex[h].t!=='clear'?RETREAT_COVER_BONUS:0);};
     c.sort((a,b)=>score(b)-score(a));
     const h=c[0];if(ez.has(h)&&stackCount(s,h,u.side,u)===0)lost++;
     seen.add(h);cur=h;
@@ -66,7 +65,7 @@ export function resolveCombat(state,k,atkIds,rng){
     case 'DL2':notes.push(stepLoss(defs));retreatAll(2);break;
     case 'DE':for(const d of defs){d.dead=true;d.pos=null;}notes.push(defs.map(d=>d.name).join(', ')+' éliminé'+(defs.length>1?'s':''));break;
   }
-  const where=HEX[k].town?TOWNS[HEX[k].town].name:'en '+TERRAIN[HEX[k].t].toLowerCase();
+  const h=next.map.hex[k],where=h.town?next.map.towns[h.town].name:'en '+TERRAIN[h.t].toLowerCase();
   pushLog(next,`<b>${COLL[o.fin]}</b>, dé ${die} : ${RES[code]} (${where}).${notes.filter(Boolean).length?' '+notes.filter(Boolean).join(' ; ')+'.':''}`,side);
   const vacated=!unitsAt(next,k).some(u=>u.side===enemy);
   const adv=vacated?atk.filter(a=>!a.dead&&neighbors(k).includes(a.pos)).map(a=>a.id):[];

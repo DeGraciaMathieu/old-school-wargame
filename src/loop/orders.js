@@ -1,4 +1,4 @@
-import { CAPTURE_FX_DELAY, IMPACT_DELAY, STACK_LIMIT, TOWNS } from '../config.js';
+import { CAPTURE_FX_DELAY, IMPACT_DELAY, STACK_LIMIT } from '../config.js';
 import { townKey } from '../rules/map.js';
 import * as combat from '../rules/combat.js';
 import * as journal from '../rules/journal.js';
@@ -18,8 +18,8 @@ function captured(id,side){
   captureEffects(id,side);
 }
 export function captureEffects(id,side){
-  const t=TOWNS[id];AUDIO.stamp();
-  if(t.vp)setTimeout(()=>{fx(townKey(id),(side==='de'?'+':'−')+t.vp+' PV',side==='de'?'':'bad');pulseScore();},CAPTURE_FX_DELAY);
+  const t=store.state.map.towns[id];AUDIO.stamp();
+  if(t.vp)setTimeout(()=>{fx(townKey(store.state.map,id),(side==='de'?'+':'−')+t.vp+' PV',side==='de'?'':'bad');pulseScore();},CAPTURE_FX_DELAY);
 }
 export async function doMove(u,k,r){
   store.busy=true;

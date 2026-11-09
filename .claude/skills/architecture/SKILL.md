@@ -15,7 +15,7 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | --- | --- | --- |
 | `src/config.js` | Toutes les constantes : géométrie (`R`, `COLS`, `ROWS`), carte (`TOWNS`, `RIVERS`, `ROADS`, `MAP_SEED`), coûts (`ROAD_COST`…), `STACK_LIMIT`, `BOND_RANGE`, `OOB`, `ARRIVALS`, `PHASES`, `TURNS`, `COLL`/`TH`/`CRT`/`RES`, `SHIFT_*`, `OOS_*`, `VP_*`, `RETREAT_*`, `AI_*`, délais, zoom, clés de stockage | aucune |
 | `src/rules/hex.js` | Grille : `key`, `unkey`, `inMap`, `neighbors`, `dist`, `hexLine`, `ek` | config |
-| `src/rules/map.js` | `buildMap(seed)` → `{HEX, riverEdge, roadEdges, roadChains}`, exportés calculés une fois ; `townKey`, `eastOfOur` | hex |
+| `src/rules/map.js` | `buildMap(seed)` → carte JSON `{hex, rivers, roads, roadChains, towns}`, portée par `state.map` ; `townKey(map,id)`, `eastOfOur(map,k)` | hex |
 | `src/rules/units.js` | `other`, `onMap`, `isMech`, `vals`, `atkOf`, `mpOf` | config |
 | `src/rules/control.js` | `unitsAt`, `occ`, `stackCount`, `zocOf`, `bondsOf` | hex, units |
 | `src/rules/movement.js` | `stepCost`, `reach` | map, units, control |
@@ -41,7 +41,7 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/loop/turn.js` | `newGame`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
 | `src/loop/orders.js` | `useDice`, `doMove`, `undoMove`, `selectUnit`, `placeUnit`, `resolve`, `advance`, `captureEffects` | rules/combat, render, store |
 | `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat`, `field` (Dijkstra mis en cache dans `fieldCache`) | orders, turn, store |
-| `src/main.js` | `useDice(Math.random)`, `drawStatic`, zoom initial, `startScreen`, import des modules `input/` | tout |
+| `src/main.js` | `useDice(Math.random)`, `drawStatic(buildMap(MAP_SEED))`, zoom initial, `startScreen`, import des modules `input/` | tout |
 
 ## Flux d'une action
 

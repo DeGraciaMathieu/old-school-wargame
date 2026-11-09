@@ -10,7 +10,7 @@ auto_invoke: true
 
 | Concept | Où | Détail |
 | --- | --- | --- |
-| Coût d'un pas `a → b` | `stepCost(a,b,mech)` — `src/rules/movement.js` | Route : `ROAD_COST` (ponts compris) ; sinon forêt `FOREST_COST_MECH`/`FOREST_COST_INF`, autre `CLEAR_COST` ; `+RIVER_CROSSING_COST` sur arête de rivière sans route |
+| Coût d'un pas `a → b` | `stepCost(map,a,b,mech)` — `src/rules/movement.js` | Route : `ROAD_COST` (ponts compris) ; sinon forêt `FOREST_COST_MECH`/`FOREST_COST_INF`, autre `CLEAR_COST` ; `+RIVER_CROSSING_COST` sur arête de rivière sans route |
 | Mécanisé | `isMech(u)` — `src/rules/units.js` | `arm`, `mech`, `td` |
 | PM disponibles | `u.mp`, rechargé par `beginPhase` à `mpOf(u)` | `mpOf` ÷`OOS_MP_DIVISOR` si isolée |
 | Cases atteignables | `reach(state,u)` → `Map(k → {cost,path,zoc})` — `src/rules/movement.js` | Dijkstra ; on s'arrête en entrant en ZOC ennemie ; pas de ZOC à ZOC ; cases ennemies et liaisons ennemies interdites ; une unité à PM pleins peut toujours avancer d'une case ; arrivée interdite sur une pile pleine |

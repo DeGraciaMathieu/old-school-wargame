@@ -1,17 +1,17 @@
-import { AI_START_DELAY, AUDIO_BARRAGE_DELAY, AUDIO_CONVOY_DELAY, AUDIO_CONVOY_DELAY_DAWN, PHASES, SIDE, SUPPLY_FX_DELAY, SUPPLY_FX_STAGGER, TOWNS } from '../config.js';
+import { AI_START_DELAY, AUDIO_BARRAGE_DELAY, AUDIO_CONVOY_DELAY, AUDIO_CONVOY_DELAY_DAWN, PHASES, SIDE, SUPPLY_FX_DELAY, SUPPLY_FX_STAGGER } from '../config.js';
 import * as turn from '../rules/turn.js';
 import * as victory from '../rules/victory.js';
 import { runAI } from './ai.js';
 import { captureEffects } from './orders.js';
 import { AUDIO } from '../render/audio.js';
 import { render } from '../render/index.js';
-import { fx } from '../render/map.js';
+import { drawStatic, fx } from '../render/map.js';
 import { closeModal, modeButtons, openModal } from '../render/sheets.js';
 import { createGame, isAI, save, store, vpOf } from '../state/store.js';
 
 /* ---------- Déroulement : partie, phases, fin de partie ---------- */
 export function newGame(mode){
-  store.state=createGame(mode);
+  store.state=createGame(mode);drawStatic(store.state.map);
   store.undo=[];store.sel={};closeModal();startPhase();
 }
 function startPhase(){
@@ -37,6 +37,7 @@ function endGame(){
   store.state.over=true;save();render();AUDIO.end();
   const vp=vpOf('de');
   const verdict={de:['Victoire allemande','La route de la Meuse est ouverte.'],draw:['Match nul','Le front tient, mais il a cédé du terrain précieux.'],us:['Victoire américaine','Le saillant est contenu, Bastogne et les carrefours tiennent.']}[victory.outcome(vp)];
-  const lines=Object.keys(TOWNS).filter(id=>TOWNS[id].vp).map(id=>`<li><span class="dot ${store.state.control[id]}"></span>${TOWNS[id].name}<em>${TOWNS[id].vp} PV · ${SIDE[store.state.control[id]]}</em></li>`).join('');
+  const towns=store.state.map.towns;
+  const lines=Object.keys(towns).filter(id=>towns[id].vp).map(id=>`<li><span class="dot ${store.state.control[id]}"></span>${towns[id].name}<em>${towns[id].vp} PV · ${SIDE[store.state.control[id]]}</em></li>`).join('');
   openModal(`<h2>${verdict[0]}</h2><p>${verdict[1]}</p><p>Points de victoire allemands : <b>${vp}</b> (victoire allemande à partir de 5, nul à 3 ou 4).</p><ul class="towns">${lines}</ul><div class="choices">${modeButtons()}</div>`);
 }
