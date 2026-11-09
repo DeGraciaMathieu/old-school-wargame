@@ -180,3 +180,11 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
   servis sur `localhost` ne partagent ni sauvegarde ni préférence de son. Aucune migration depuis `le-saillant-v1`.
 - `mulberry(MAP_SEED)` reste intouchable tant que le scénario du Saillant sert de référence à l'extraction ; la consigne
   tombera avec ce scénario.
+- Extraction du cœur (étapes 1a à 1c) : la carte vit dans `state.map` (JSON), les terrains dans `TERRAINS`, le
+  scénario dans `SAILLANT`. Écarts au PRD, faits pour garder le comportement à l'identique :
+  - le contrôle initial reste calculé dans `createGame` avec `eastOf(sc.rivers[0],…)`, plutôt qu'une fonction
+    `initialControl` du scénario (`config.js` ne peut pas importer `rules/`) ;
+  - les objectifs de l'IA sont copiés dans l'état (`state.aiHints`), comme les renforts annoncés (`state.arrivals`),
+    pour que l'IA les retrouve après une reprise de partie ;
+  - l'aspect des terrains (`LOOK`, `render/map.js`) et leur effet expliqué au joueur (`TERRAIN_NOTE`, `hexBlock`)
+    restent dans `render/`, indexés par terrain : ce sont du dessin et du texte, pas des règles.

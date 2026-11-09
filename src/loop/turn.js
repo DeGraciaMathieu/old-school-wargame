@@ -10,8 +10,8 @@ import { closeModal, modeButtons, openModal } from '../render/sheets.js';
 import { createGame, isAI, save, store, vpOf } from '../state/store.js';
 
 /* ---------- Déroulement : partie, phases, fin de partie ---------- */
-export function newGame(mode){
-  store.state=createGame(mode);drawStatic(store.state.map);
+export function newGame(mode,sc){
+  store.state=createGame(mode,sc);drawStatic(store.state.map);
   store.undo=[];store.sel={};closeModal();startPhase();
 }
 function startPhase(){

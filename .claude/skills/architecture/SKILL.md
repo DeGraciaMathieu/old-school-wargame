@@ -13,9 +13,9 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 
 | Module | Rôle | Dépendances clés |
 | --- | --- | --- |
-| `src/config.js` | Toutes les constantes : géométrie (`R`, `COLS`, `ROWS`), carte (`TOWNS`, `RIVERS`, `ROADS`, `MAP_SEED`), coûts (`ROAD_COST`…), `STACK_LIMIT`, `BOND_RANGE`, `OOB`, `ARRIVALS`, `PHASES`, `TURNS`, `COLL`/`TH`/`CRT`/`RES`, `SHIFT_*`, `OOS_*`, `VP_*`, `RETREAT_*`, `AI_*`, délais, zoom, clés de stockage | aucune |
+| `src/config.js` | Toutes les constantes : géométrie (`R`, `COLS`, `ROWS`), carte (`TOWNS`, `RIVERS`, `ROADS`, `MAP_SEED`), terrains (`TERRAINS`), coûts d'arête (`ROAD_COST`, `RIVER_CROSSING_COST`), `STACK_LIMIT`, `BOND_RANGE`, `OOB`, `ARRIVALS`, `PHASES`, `TURNS`, `COLL`/`TH`/`CRT`/`RES`, `SHIFT_RIVER`, `OOS_*`, `VP_*`, `RETREAT_*`, `AI_*`, délais, zoom, clés de stockage ; scénario `SAILLANT` | aucune |
 | `src/rules/hex.js` | Grille : `key`, `unkey`, `inMap`, `neighbors`, `dist`, `hexLine`, `ek` | config |
-| `src/rules/map.js` | `buildMap(seed)` → carte JSON `{hex, rivers, roads, roadChains, towns}`, portée par `state.map` ; `townKey(map,id)`, `eastOfOur(map,k)` | hex |
+| `src/rules/map.js` | `buildMap(sc)` → carte JSON `{hex, rivers, roads, roadChains, towns}`, portée par `state.map` ; `townKey(map,id)`, `eastOf(river,map,k)` | hex |
 | `src/rules/units.js` | `other`, `onMap`, `isMech`, `vals`, `atkOf`, `mpOf` | config |
 | `src/rules/control.js` | `unitsAt`, `occ`, `stackCount`, `zocOf`, `bondsOf` | hex, units |
 | `src/rules/movement.js` | `stepCost`, `reach` | map, units, control |
@@ -41,7 +41,7 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/loop/turn.js` | `newGame`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
 | `src/loop/orders.js` | `useDice`, `doMove`, `undoMove`, `selectUnit`, `placeUnit`, `resolve`, `advance`, `captureEffects` | rules/combat, render, store |
 | `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat`, `field` (Dijkstra mis en cache dans `fieldCache`) | orders, turn, store |
-| `src/main.js` | `useDice(Math.random)`, `drawStatic(buildMap(MAP_SEED))`, zoom initial, `startScreen`, import des modules `input/` | tout |
+| `src/main.js` | `useDice(Math.random)`, `drawStatic(buildMap(SAILLANT))`, zoom initial, `startScreen`, import des modules `input/` | tout |
 
 ## Flux d'une action
 
@@ -61,7 +61,7 @@ L'IA suit le même chemin : `startPhase` → `setTimeout(runAI, AI_START_DELAY)`
 | Nouvelle valeur (coût, seuil, délai, poids d'IA) | `src/config.js`, section correspondante | Importer là où elle sert |
 | Nouvelle règle de jeu (calcul, légalité) | Fonction pure dans le module `src/rules/` du sous-système, `state` en paramètre | Test dans `tests/<module>.test.js` ; enveloppe dans `state/store.js` si `render/` ou `loop/` en a besoin |
 | Nouvelle transition d'état | `src/rules/`, sur `structuredClone`, renvoyant `{state, …événements}` | Appel depuis `loop/`, puis `store.state = r.state` et effets |
-| Nouvelle donnée de scénario (unité, ville, route) | `OOB`, `ARRIVALS`, `TOWNS`, `ROADS`, `RIVERS` dans `config.js` | Vérifier `tests/map.test.js` (empreinte) et les textes de règles |
+| Nouvelle donnée de scénario (unité, ville, route) | `OOB`, `ARRIVALS`, `TOWNS`, `ROADS`, `RIVERS` dans `config.js`, regroupés dans `SAILLANT` | Vérifier `tests/map.test.js` (empreinte) et les textes de règles |
 | Nouvel affichage | `src/render/` (panneau → `panel.js`, carte → `map.js`, fenêtre → `sheets.js`) | Appel depuis `render()` ou `loop/` |
 | Nouveau bouton ou interaction | Balise `data-act="…"` dans le HTML généré par `render/`, traitement dans `onAction` (`input/actions.js`) | Logique dans `loop/` |
 | Nouveau son | Méthode de `AUDIO` dans `render/audio.js` | Appel depuis `loop/` |

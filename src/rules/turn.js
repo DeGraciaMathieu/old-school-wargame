@@ -1,4 +1,4 @@
-import { STACK_LIMIT, OOS_CUT, OOS_ISOLATED, ARRIVALS, PHASES, TURNS } from '../config.js';
+import { STACK_LIMIT, OOS_CUT, OOS_ISOLATED, PHASES, TURNS } from '../config.js';
 import { neighbors } from './hex.js';
 import { other, onMap, mpOf } from './units.js';
 import { occ, stackCount } from './control.js';
@@ -34,7 +34,7 @@ function arrive(s,side,captures){
     let k=(u.entry||[]).find(e=>!eo.has(e)&&stackCount(s,e,side)<STACK_LIMIT)||freeHexNear(s,u.entry[0],side);
     u.arrived=true;if(k){enterHex(s,u,k,captures);n++;}
   }
-  const a=ARRIVALS.filter(a=>a.turn===s.turn&&a.side===side);
+  const a=s.arrivals.filter(a=>a.turn===s.turn&&a.side===side);
   for(const x of a)pushLog(s,'Renforts : '+x.text+'.',side);
   return n;
 }

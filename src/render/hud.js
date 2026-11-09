@@ -1,11 +1,11 @@
-import { ARRIVALS, COLL, FIRST_DAY, PHASES, TURNS, VP_DRAW, VP_GERMAN_WIN, VP_TOTAL, TURNS_PER_DAY } from '../config.js';
+import { COLL, FIRST_DAY, PHASES, TURNS, VP_DRAW, VP_GERMAN_WIN, VP_TOTAL, TURNS_PER_DAY } from '../config.js';
 import * as victory from '../rules/victory.js';
 import { esc, turnLabel } from './labels.js';
 import { U, eligibleAttackers, isAI, odds, store, vpOf } from '../state/store.js';
 
 /* ---------- Piste des tours, score, barre d'action mobile ---------- */
 export function renderTrack(){
-  let s='';for(let t=1;t<=TURNS;t++){const a=ARRIVALS.filter(x=>x.turn===t);s+=`<div class="tcell${t<store.state.turn?' past':''}${t===store.state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+(x.side==='de'?'allemands':'américains')+' : '+x.text).join('')}"><b>${FIRST_DAY+Math.floor((t-1)/TURNS_PER_DAY)}</b>${t%TURNS_PER_DAY?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">${x.side==='de'?'DE':'US'}</span>`).join('')}</span>`:''}</div>`;}
+  let s='';for(let t=1;t<=TURNS;t++){const a=store.state.arrivals.filter(x=>x.turn===t);s+=`<div class="tcell${t<store.state.turn?' past':''}${t===store.state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+(x.side==='de'?'allemands':'américains')+' : '+x.text).join('')}"><b>${FIRST_DAY+Math.floor((t-1)/TURNS_PER_DAY)}</b>${t%TURNS_PER_DAY?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">${x.side==='de'?'DE':'US'}</span>`).join('')}</span>`:''}</div>`;}
   document.getElementById('track').innerHTML=s;
 }
 export const scoreEl=document.getElementById('mapscore');

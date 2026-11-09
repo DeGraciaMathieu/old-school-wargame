@@ -1,16 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { beginPhase, nextPhase } from '../src/rules/turn.js';
+import { createGame } from '../src/state/store.js';
 import { buildMap } from '../src/rules/map.js';
-import { MAP_SEED } from '../src/config.js';
+import { SAILLANT } from '../src/config.js';
 
-const map = buildMap(MAP_SEED);
+const map = buildMap(SAILLANT);
 
 const unit = (id, side, pos, extra = {}) => ({
   id, side, pos, name: id, type: 'inf', v: [2, 3, 4], rv: [1, 2, 4], max: 2, steps: 2,
   oos: 0, mp: 0, attacked: false, dead: false, arrived: true, ...extra,
 });
-const game = (phase, turn, units, control = {}) => ({ mode: 'hotseat', turn, phase, control, attacked: [], log: [], over: false, units, map });
+const game = (phase, turn, units, control = {}) => ({ mode: 'hotseat', turn, phase, control, attacked: [], log: [], over: false, units, map, arrivals: SAILLANT.arrivals });
 
 test('les phases s\'enchaînent, et la partie s\'arrête après les combats américains du tour 8', () => {
   assert.deepEqual(nextPhase({ turn: 2, phase: 1 }), { turn: 2, phase: 2 });
@@ -49,6 +50,15 @@ test('des renforts qui entrent dans une ville libre tenue par l\'ennemi la repre
   const { state, captures } = beginPhase(game(2, 5, [desobry], { bastogne: 'de' }));
   assert.equal(state.control.bastogne, 'us');
   assert.deepEqual(captures, [{ id: 'bastogne', side: 'us' }]);
+});
+
+test('une partie neuve porte sa carte, ses renforts annoncés et le contrôle initial des villes', () => {
+  const state = createGame('hotseat', SAILLANT);
+  assert.deepEqual(state.map, map);
+  assert.deepEqual(state.arrivals, SAILLANT.arrivals);
+  assert.equal(state.control.bastogne, 'us');
+  assert.equal(state.control.dasburg, 'de');
+  assert.equal(state.units.filter(u => u.pos).length, 16);
 });
 
 test('le début de phase ne modifie pas l\'état reçu', () => {

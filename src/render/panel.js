@@ -1,4 +1,4 @@
-import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAINS, TURNS, OOS_ISOLATED } from '../config.js';
+import { COLL, CRT, PHASES, RES, SIDE, TERRAINS, TURNS, OOS_ISOLATED } from '../config.js';
 import { ek, neighbors } from '../rules/hex.js';
 import { atkOf, other, vals } from '../rules/units.js';
 import { esc, turnLabel } from './labels.js';
@@ -63,7 +63,7 @@ export function renderPanel(){
   if(store.sel.result)s+=resultBlock(ph);
   else if(store.sel.target&&!ai)s+=combatBlock(ph);
   else if(store.sel.hex)s+=hexBlock(store.sel.hex,ph);
-  const next=ARRIVALS.filter(a=>a.turn>store.state.turn||(a.turn===store.state.turn&&store.state.phase<(a.side==='de'?0:2)));
+  const next=store.state.arrivals.filter(a=>a.turn>store.state.turn||(a.turn===store.state.turn&&store.state.phase<(a.side==='de'?0:2)));
   if(next.length)s+=`<div class="box"><span class="eyebrow">Renforts à venir</span><ul class="reinf">${next.map(a=>`<li>Tour ${a.turn} (${turnLabel(a.turn)}) : ${a.text}</li>`).join('')}</ul></div>`;
   panel.innerHTML=s;
 }

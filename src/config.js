@@ -145,3 +145,10 @@ export const END_COMBAT_LIST_MAX=6;
 export const ZOOM_MIN=0.6, ZOOM_MAX=2.2, ZOOM_STEP=1.18, ZOOM_INIT_MIN=0.85, ZOOM_INIT_MAX=1.5;
 export const MOBILE_MAX_WIDTH=900;
 export const SHOW_POCKETS=false; // contours de poche désactivés pour l'instant
+
+/* ---------- Scénario ---------- */
+// Le Saillant : carte (graine, villes, rivières, routes), ordre de bataille, renforts, premier message du journal,
+// objectifs de l'IA (garnisons américaines, ville principale et plafond d'attaquants allemands sur elle)
+export const SAILLANT={seed:MAP_SEED,towns:TOWNS,rivers:RIVERS,roads:ROADS,oob:OOB,arrivals:ARRIVALS,
+  intro:'16 décembre, 5 h 30 : l\'artillerie allemande ouvre le feu sur la ligne de la 28th Division.',
+  ai:{slots:AI_US_SLOTS,main:'bastogne',mainCap:AI_DE_CAP_BASTOGNE}};

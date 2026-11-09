@@ -1,4 +1,4 @@
-import { AI_START_DELAY, PHASES, ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from '../config.js';
+import { AI_START_DELAY, PHASES, SAILLANT, ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from '../config.js';
 import { fieldCache, runAI } from '../loop/ai.js';
 import { endPhase, newGame } from '../loop/turn.js';
 import { AUDIO } from '../render/audio.js';
@@ -10,7 +10,7 @@ import { isAI, loadSaved, store } from '../state/store.js';
 
 /* ---------- Interactions : fenêtres, zoom, son ---------- */
 sheet.addEventListener('click',e=>{
-  const m=e.target.closest('[data-mode]');if(m){fieldCache.clear();newGame(m.getAttribute('data-mode'));return;}
+  const m=e.target.closest('[data-mode]');if(m){fieldCache.clear();newGame(m.getAttribute('data-mode'),SAILLANT);return;}
   if(e.target.closest('[data-resume]')){store.state=loadSaved();drawStatic(store.state.map);closeModal();store.undo=[];store.sel={};render();const ph=PHASES[store.state.phase];if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);return;}
   if(e.target.closest('[data-rules]')){rulesScreen();return;}
   if(e.target.closest('[data-end-confirm]')){closeModal();store.sel={};endPhase();return;}

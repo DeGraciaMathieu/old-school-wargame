@@ -55,7 +55,9 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
 
 ### État
 
-- La partie vit dans `store.state` : `{mode, turn, phase, control, attacked, log, over, units, map}`.
+- La partie vit dans `store.state` : `{mode, turn, phase, control, attacked, log, over, units, map, arrivals, aiHints}`.
+  Elle est créée par `createGame(mode, scenario)` à partir d'un scénario de `config.js` (`SAILLANT`) :
+  carte, renforts annoncés (`arrivals`) et objectifs de l'IA (`aiHints`) sont copiés dans l'état.
   `map` est la carte de la partie, en JSON simple : `{hex, rivers, roads, roadChains, towns}`
   (`rivers` et `roads` indexés par clé d'arête). Les règles la lisent dans `state.map`, jamais dans un module.
   Une unité porte `id, side, name, div, type, v, rv, max, steps, pos, arrived, mp, attacked,

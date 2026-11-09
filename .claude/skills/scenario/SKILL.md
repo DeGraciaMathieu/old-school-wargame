@@ -11,19 +11,20 @@ auto_invoke: true
 | Concept | Où | Détail |
 | --- | --- | --- |
 | Grille | `COLS`×`ROWS` (16×12), hexagones pointe en haut, lignes impaires décalées — `src/rules/hex.js` | Clé `'c,r'` |
-| Terrain | `buildMap(seed)` — `src/rules/map.js` | `mulberry(MAP_SEED)` : forêts par bande de colonnes (`FOREST_PROB*`, `FOREST_*_COL`), lissage `TERRAIN_SMOOTH_PASSES`, teinte `alt` (`CLEAR_ALT_SHADE_PROB`) ; types `clear`, `forest`, `town`, `city` (table `TERRAINS` : libellé, coût, décalages, couvert ; aspect dans `LOOK` de `render/map.js`) |
+| Scénario | `SAILLANT` — `config.js` | `{seed, towns, rivers, roads, oob, arrivals, intro, ai}` regroupe les données ci-dessous ; passé à `createGame(mode, sc)` |
+| Terrain | `buildMap(sc)` — `src/rules/map.js` | `mulberry(sc.seed)` (`MAP_SEED`) : forêts par bande de colonnes (`FOREST_PROB*`, `FOREST_*_COL`), lissage `TERRAIN_SMOOTH_PASSES`, teinte `alt` (`CLEAR_ALT_SHADE_PROB`) ; types `clear`, `forest`, `town`, `city` (table `TERRAINS` : libellé, coût, décalages, couvert ; aspect dans `LOOK` de `render/map.js`) |
 | Villes | `TOWNS` — `config.js` | `{c,r,name,t,vp}` ; `map.hex[k].town` ; `map.towns` ; `townKey(map,id)` |
-| Rivières | `RIVERS` (`b[r]` = première colonne de la rive est) → `map.rivers` | `eastOfOur(map,k)` |
+| Rivières | `RIVERS` (`b[r]` = première colonne de la rive est) → `map.rivers` | `eastOf(river,map,k)` |
 | Routes | `ROADS` (points de passage : villes ou `'c,r'`) → `map.roads`, `map.roadChains` via `hexLine` | Ponts dessinés là où une route coupe une rivière |
 | Ordre de bataille | `OOB` — `config.js` | `{id,side,name,div,type,v,rv,at}` (`steps` facultatif, `DEFAULT_STEPS` sinon) ; renforts : `turn` + `entry[]` |
-| Annonces de renforts | `ARRIVALS` — `config.js` | Texte du journal, de la piste et du panneau « Renforts à venir » |
+| Annonces de renforts | `ARRIVALS` — `config.js`, copiées dans `state.arrivals` | Texte du journal, de la piste et du panneau « Renforts à venir » |
 | Entrée des renforts | `arrive` (interne) / `freeHexNear` — `src/rules/turn.js` | Au début du mouvement de leur camp, à leur tour ; première entrée libre, sinon case libre la plus proche |
 | Phases | `PHASES` (4 : mouvement et combats allemands, puis américains), `TURNS`, `nextPhase` | `beginPhase` : remise à zéro des attaques, ravitaillement, renforts, PM |
 | Dates | `turnLabel(t)` — `src/render/labels.js` | `FIRST_DAY`, `TURNS_PER_DAY` (matin / après-midi) |
-| Contrôle des villes | `state.control` ; initial dans `createGame` selon `eastOfOur` | Le dernier camp entré dans une ville libre la contrôle (`townTakenBy`) |
+| Contrôle des villes | `state.control` ; initial dans `createGame` selon `eastOf(sc.rivers[0],…)` (rive de l'Our) | Le dernier camp entré dans une ville libre la contrôle (`townTakenBy`) |
 | PV et verdict | `vpOf`, `outcome` — `src/rules/victory.js` | `VP_GERMAN_WIN`, `VP_DRAW`, `VP_TOTAL` |
 | Modes | `state.mode` : `'ai-us'`, `'ai-de'`, `'hotseat'` ; `isAI(side)` — `src/state/store.js` | Boutons de `modeButtons` (`src/render/sheets.js`) |
-| Nouvelle partie | `newGame(mode)` — `src/loop/turn.js` → `createGame(mode)` — `src/state/store.js` | Vider `fieldCache` avant (fait dans `input/controls.js`) |
+| Nouvelle partie | `newGame(mode,sc)` — `src/loop/turn.js` → `createGame(mode,sc)` — `src/state/store.js` | Vider `fieldCache` avant (fait dans `input/controls.js`) |
 | Fin de partie | `endGame()` — `src/loop/turn.js` | Après la dernière phase du tour `TURNS` |
 | Sauvegarde | `save()` / `loadSaved()` — `src/state/store.js`, clé `SAVE_KEY` | État brut en JSON ; une partie terminée n'est pas proposée à la reprise |
 | Journal | `state.log` (au plus `LOG_MAX`), `pushLog` — `src/rules/journal.js` | `{t,text,side}`, entrées en tête |
@@ -35,7 +36,7 @@ auto_invoke: true
    (`symbol()` de `src/render/map.js` doit savoir le dessiner), `v` et `rv`, et `at` ou
    `turn` + `entry`.
 2. Renfort : ajouter ou ajuster l'annonce dans `ARRIVALS` pour le même `turn` et `side`.
-3. Si l'IA américaine doit tenir une nouvelle ville, ajuster `AI_US_SLOTS`.
+3. Si l'IA américaine doit tenir une nouvelle ville, ajuster `AI_US_SLOTS` (copié dans `state.aiHints.slots`).
 4. Ajouter un test dans `tests/turn.test.js` si l'entrée a une particularité.
 5. Mettre à jour le texte de `startScreen` et de `rulesScreen` si le scénario raconté change.
 6. `npm test`, puis vérifier en jeu (`npm run dev`).

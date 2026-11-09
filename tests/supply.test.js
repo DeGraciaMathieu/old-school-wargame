@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { supplyOf, supplyPath } from '../src/rules/supply.js';
 import { buildMap } from '../src/rules/map.js';
-import { MAP_SEED } from '../src/config.js';
+import { SAILLANT } from '../src/config.js';
 
-const map = buildMap(MAP_SEED);
+const map = buildMap(SAILLANT);
 
 const unit = (id, side, pos) => ({ id, side, pos, dead: false });
 

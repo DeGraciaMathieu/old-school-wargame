@@ -23,7 +23,7 @@ auto_invoke: true
 | Annulation | `undoMove()` — `src/loop/orders.js` | Restaure `pos`, `mp`, `control` (pas le journal) ; pile vidée à chaque phase |
 | Affichage | `renderMap` — `src/render/map.js` | `hl-zoc` (ZOC ennemie teintée pendant le mouvement d'un joueur humain, hors cases ennemies), `hl-reach` / `hl-reachz` (case atteignable en ZOC), liaisons tracées pendant le mouvement (`bond own`/`foe`) |
 | Animation | `animatePath(u,path)` | `MOVE_MS_PER_HEX` par case, désactivée si `prefers-reduced-motion` |
-| IA | `aiMove(side)` — `src/loop/ai.js` | Objectifs : `AI_US_SLOTS` (Américains), villes à PV avec `AI_DE_CAP_*` et `AI_DE_VP_WEIGHT` (Allemands) ; distances `field(goal,mech)` ; score de case avec `AI_US_COVER_BONUS`, `AI_ZOC_WEIGHT_*` ; ne bouge que si gain > `AI_MOVE_MIN_GAIN` |
+| IA | `aiMove(side)` — `src/loop/ai.js` | Objectifs lus dans `state.aiHints` : garnisons `slots` (Américains), villes à PV avec `mainCap` pour la ville `main` et `AI_DE_CAP_OTHER` et `AI_DE_VP_WEIGHT` (Allemands) ; distances `field(goal,mech)` ; score de case avec `AI_US_COVER_BONUS`, `AI_ZOC_WEIGHT_*` ; ne bouge que si gain > `AI_MOVE_MIN_GAIN` |
 
 ## Modifier un coût de mouvement
 

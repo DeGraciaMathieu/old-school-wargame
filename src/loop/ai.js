@@ -1,4 +1,4 @@
-import { TERRAINS, AI_ADVANCE_PAUSE, AI_COMBAT_GUARD, AI_DE_CAP_BASTOGNE, AI_DE_CAP_OTHER, AI_DE_VP_WEIGHT, AI_END_PHASE_DELAY, AI_MOVE_PAUSE, AI_RESULT_PAUSE, AI_TARGET_PAUSE, AI_US_SLOTS, PHASES, AI_US_COVER_BONUS, AI_ZOC_WEIGHT_DE, AI_ZOC_WEIGHT_US, AI_MOVE_MIN_GAIN, AI_PRUNE_FROM_COL, AI_PRUNE_KEEP_COL, AI_MIN_COL_DE_VP, AI_MIN_COL_DE, AI_MIN_COL_US_RETAKE, AI_MIN_COL_US, AI_COMBAT_COL_WEIGHT } from '../config.js';
+import { TERRAINS, AI_ADVANCE_PAUSE, AI_COMBAT_GUARD, AI_DE_CAP_OTHER, AI_DE_VP_WEIGHT, AI_END_PHASE_DELAY, AI_MOVE_PAUSE, AI_RESULT_PAUSE, AI_TARGET_PAUSE, PHASES, AI_US_COVER_BONUS, AI_ZOC_WEIGHT_DE, AI_ZOC_WEIGHT_US, AI_MOVE_MIN_GAIN, AI_PRUNE_FROM_COL, AI_PRUNE_KEEP_COL, AI_MIN_COL_DE_VP, AI_MIN_COL_DE, AI_MIN_COL_US_RETAKE, AI_MIN_COL_US, AI_COMBAT_COL_WEIGHT } from '../config.js';
 import { neighbors } from '../rules/hex.js';
 import { townKey } from '../rules/map.js';
 import { isMech, onMap, other, vals } from '../rules/units.js';
@@ -27,23 +27,23 @@ export async function runAI(){
   store.busy=false;await sleep(AI_END_PHASE_DELAY);endPhase();
 }
 async function aiMove(side){
-  const enemy=other(side),{hex,towns}=store.state.map,tk=id=>townKey(store.state.map,id);
+  const enemy=other(side),{hex,towns}=store.state.map,hints=store.state.aiHints,tk=id=>townKey(store.state.map,id);
   const mine=store.state.units.filter(u=>onMap(u)&&u.side===side);
   const goals=new Map();
   if(side==='us'){
-    const slots=AI_US_SLOTS.filter(([id])=>store.state.control[id]==='us');
+    const slots=hints.slots.filter(([id])=>store.state.control[id]==='us');
     const need=new Map(slots);
     const ez=zocOf(enemy);
     for(const u of mine){const id=hex[u.pos].town;if(id&&need.get(id)>0){need.set(id,need.get(id)-1);goals.set(u.id,null);}}
     for(const u of mine){if(goals.has(u.id))continue;if(ez.has(u.pos)){goals.set(u.id,null);continue;}
       let best=null,bd=1e9;for(const [id,n] of need){if(n<=0)continue;const d=field(tk(id),isMech(u)).get(u.pos);if(d<bd){bd=d;best=id;}}
       if(best)need.set(best,need.get(best)-1);
-      goals.set(u.id,tk(best||'bastogne'));}
+      goals.set(u.id,tk(best||hints.main));}
   }else{
     const ez=zocOf(enemy);
     const targets=Object.keys(towns).filter(id=>towns[id].vp>0&&store.state.control[id]!=='de');
-    if(!targets.length)targets.push('bastogne');
-    const cap=new Map(targets.map(id=>[id,id==='bastogne'?AI_DE_CAP_BASTOGNE:AI_DE_CAP_OTHER]));
+    if(!targets.length)targets.push(hints.main);
+    const cap=new Map(targets.map(id=>[id,id===hints.main?hints.mainCap:AI_DE_CAP_OTHER]));
     for(const u of mine){if(ez.has(u.pos)){goals.set(u.id,null);continue;}
       let best=null,bd=1e9;for(const id of targets){if(cap.get(id)<=0)continue;const d=field(tk(id),isMech(u)).get(u.pos)-towns[id].vp*AI_DE_VP_WEIGHT;if(d<bd){bd=d;best=id;}}
       if(!best)best=targets[0];cap.set(best,cap.get(best)-1);goals.set(u.id,tk(best));}

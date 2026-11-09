@@ -31,7 +31,7 @@ test : si un test semble en réclamer une, c'est que la règle n'est pas assez p
 - **Transitions** : vérifier aussi que l'état reçu n'est pas modifié
   (`structuredClone` avant, `assert.deepEqual` après).
 - Un ou deux tests par règle : le cas nominal et le cas limite qui justifie la règle.
-- Les coordonnées viennent de la vraie carte (`buildMap(MAP_SEED)`, passée dans `state.map` des fabriques d'état). Vérifier le
+- Les coordonnées viennent de la vraie carte (`buildMap(SAILLANT)`, passée dans `state.map` des fabriques d'état, avec `arrivals: SAILLANT.arrivals` pour les débuts de phase). Vérifier le
   terrain d'une case avant de s'en servir (ex. `5,5` dégagé, `2,7` Bastogne, `8,0` → `9,0` forêt).
 
 ## Fichier de test → périmètre couvert
@@ -39,7 +39,7 @@ test : si un test semble en réclamer une, c'est que la règle n'est pas assez p
 | Fichier | Couvre |
 | --- | --- |
 | `tests/hex.test.js` | Voisins (centre, coin), distance, continuité de `hexLine` |
-| `tests/map.test.js` | Carte déterministe et empreinte figée (73 forêts, 44 arêtes de rivière, 63 de route), Bastogne ville, pont de l'Our, `eastOfOur` |
+| `tests/map.test.js` | Carte déterministe et empreinte figée (73 forêts, 44 arêtes de rivière, 63 de route), Bastogne ville, pont de l'Our, `eastOf` |
 | `tests/units.test.js` | Valeurs réduites, attaque ÷2 si coupée, mouvement ÷2 si isolée |
 | `tests/movement.test.js` | `stepCost` (route, forêt, rivière), `reach` (arrêt en ZOC, PM restants, toujours une case, pile pleine) |
 | `tests/control.test.js` | ZOC, liaison, rupture de liaison, empilement hors unités détruites |

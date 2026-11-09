@@ -1,5 +1,5 @@
-import { DEFAULT_STEPS, MAP_SEED, OOB, SAVE_KEY } from '../config.js';
-import { buildMap, eastOfOur, townKey } from '../rules/map.js';
+import { DEFAULT_STEPS, SAVE_KEY } from '../config.js';
+import { buildMap, eastOf, townKey } from '../rules/map.js';
 import * as combat from '../rules/combat.js';
 import * as control from '../rules/control.js';
 import * as journal from '../rules/journal.js';
@@ -27,12 +27,14 @@ export const eligibleAttackers=(k,side)=>combat.eligibleAttackers(store.state,k,
 export const canTarget=(k,side)=>combat.canTarget(store.state,k,side);
 export const odds=(k,atk)=>combat.odds(store.state,k,atk);
 
-// Partie neuve : carte du scénario portée par l'état, OOB déployé, villes contrôlées selon leur rive de l'Our, premier message du journal
-export function createGame(mode){
-  const map=buildMap(MAP_SEED);
+// Partie neuve sur un scénario : carte, renforts annoncés et objectifs de l'IA portés par l'état, OOB déployé,
+// villes contrôlées selon leur rive de la première rivière, premier message du journal
+export function createGame(mode,sc){
+  const map=buildMap(sc);
   const s={mode,turn:1,phase:0,control:{},attacked:[],log:[],over:false,
-    units:OOB.map(o=>({...o,max:o.steps||DEFAULT_STEPS,steps:o.steps||DEFAULT_STEPS,pos:(o.turn||1)>1?null:o.at,arrived:(o.turn||1)===1,mp:0,attacked:false,dead:false,oos:0})),map};
-  for(const id in map.towns)s.control[id]=eastOfOur(map,townKey(map,id))?'de':'us';
-  journal.pushLog(s,'16 décembre, 5 h 30 : l\'artillerie allemande ouvre le feu sur la ligne de la 28th Division.','de');
+    units:sc.oob.map(o=>({...o,max:o.steps||DEFAULT_STEPS,steps:o.steps||DEFAULT_STEPS,pos:(o.turn||1)>1?null:o.at,arrived:(o.turn||1)===1,mp:0,attacked:false,dead:false,oos:0})),
+    map,arrivals:structuredClone(sc.arrivals),aiHints:structuredClone(sc.ai)};
+  for(const id in map.towns)s.control[id]=eastOf(sc.rivers[0],map,townKey(map,id))?'de':'us';
+  journal.pushLog(s,sc.intro,'de');
   return s;
 }

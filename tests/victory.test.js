@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { vpOf, townTakenBy, outcome } from '../src/rules/victory.js';
 import { buildMap } from '../src/rules/map.js';
-import { MAP_SEED } from '../src/config.js';
+import { SAILLANT } from '../src/config.js';
 
-const map = buildMap(MAP_SEED);
+const map = buildMap(SAILLANT);
 
 test('les Allemands marquent les PV des villes qu\'ils contrôlent', () => {
   const state = { map, control: { bastogne: 'de', wiltz: 'de', clervaux: 'us', noville: 'de' } };

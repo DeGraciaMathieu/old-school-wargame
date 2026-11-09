@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { stepCost, reach } from '../src/rules/movement.js';
 import { buildMap } from '../src/rules/map.js';
-import { MAP_SEED, TERRAINS } from '../src/config.js';
+import { SAILLANT, TERRAINS } from '../src/config.js';
 
-const map = buildMap(MAP_SEED);
+const map = buildMap(SAILLANT);
 
 test('suivre une route coûte ½ PM, même sur un pont', () => {
   assert.equal(stepCost(map, '13,4', '12,4', true), 0.5);

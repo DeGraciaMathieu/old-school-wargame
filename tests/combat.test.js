@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { odds, canTarget, resolveCombat } from '../src/rules/combat.js';
 import { dist } from '../src/rules/hex.js';
 import { buildMap } from '../src/rules/map.js';
-import { COLL, MAP_SEED, TERRAINS } from '../src/config.js';
+import { COLL, SAILLANT, TERRAINS } from '../src/config.js';
 
-const map = buildMap(MAP_SEED);
+const map = buildMap(SAILLANT);
 
 const unit = (id, side, pos, type, atk, def) =>
   ({ id, side, pos, type, v: [atk, def, 4], rv: [1, 1, 4], max: 2, steps: 2, oos: 0, dead: false, attacked: false });
