@@ -27,7 +27,7 @@ export async function doMove(u,k,r){
   store.sel={hex:k};render();
   await animatePath(u,r.path);
   for(const p of r.path.slice(1))placeUnit(u,p);
-  u.mp=r.zoc?0:Math.max(0,u.mp-r.cost);
+  u.mp=r.stop?0:Math.max(0,u.mp-r.cost);
   store.busy=false;
   store.sel={hex:k};render();
   save();

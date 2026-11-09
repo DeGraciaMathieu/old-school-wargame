@@ -20,7 +20,7 @@ function hexBlock(k,ph){
   const map=store.state.map,h=map.hex[k],t=h.town?map.towns[h.town]:null,us=unitsAt(k);
   const rivers=neighbors(k).filter(n=>map.rivers[ek(k,n)]).length;
   let s=`<div class="box"><span class="eyebrow">Hexagone ${k}</span><h3>${t?t.name:TERRAINS[h.t].label}</h3><dl class="kv"><dt>Terrain</dt><dd>${TERRAINS[h.t].label} · ${TERRAIN_NOTE[h.t]}</dd>`;
-  if(rivers)s+=`<dt>Rivière</dt><dd>+2 PM pour la traverser hors pont</dd>`;
+  if(rivers)s+=`<dt>Rivière</dt><dd>+2 PM pour la traverser hors pont, puis arrêt</dd>`;
   const bd=['blue','red'].find(sd=>bondsOf(sd).has(k));
   if(us.length){const su=(store.sel.unit&&U(store.sel.unit).pos===k)?U(store.sel.unit):us[0],p=supplyPath(su.side,su.pos);s+=`<dt>Ravitaillement</dt><dd>${p?`ligne de ${p.length-1} case${p.length>2?'s':''} jusqu'au bord ${HOME[su.side]==='west'?'ouest':'est'}`:'aucune ligne, unité encerclée'}</dd>`;}
   if(bd)s+=`<dt>Liaison</dt><dd>Tenue par les ${SIDE[bd].toLowerCase()}, interdite aux ${SIDE[other(bd)].toLowerCase()}</dd>`;

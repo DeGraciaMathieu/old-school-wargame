@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { stepCost, reach } from '../src/rules/movement.js';
-import { TERRAINS } from '../src/config.js';
+import { TERRAINS, ROWS } from '../src/config.js';
+import { key, unkey, neighbors } from '../src/rules/hex.js';
 import { testMap } from './fixtures.js';
 
 const map = testMap({ forest: ['9,0', '5,5'], mountain: ['9,8'], rivers: [['13,4', '12,4'], ['13,0', '14,0']], roads: [['13,4', '12,4'], ['4,5', '5,5'], ['9,9', '9,8']] });
@@ -59,6 +60,27 @@ test('une unité ne peut pas dépenser plus que ses PM restants', () => {
 test('une unité qui n\'a pas encore bougé peut toujours avancer d\'un hexagone', () => {
   const me = inf('a', 'blue', '8,0', 1, 1);
   assert.equal(reach({ map, units: [me] }, me).get('9,0').cost, 1);
+});
+
+// Rivière entre les colonnes 5 et 6 sur toute la hauteur, pont en 5,0 - 6,0
+const riverMap = testMap({
+  rivers: Array.from({ length: ROWS }, (_, r) => key(5, r)).flatMap(k => neighbors(k).filter(n => unkey(n)[0] === 6).map(n => [k, n])),
+  roads: [['5,0', '6,0']],
+});
+
+test('traverser une rivière hors pont arrête le mouvement', () => {
+  const me = inf('a', 'blue', '5,5', 8);
+  const r = reach({ map: riverMap, units: [me] }, me);
+  assert.equal(r.get('6,5').stop, true);
+  assert.equal(r.get('6,5').zoc, false);
+  assert.equal(r.has('7,5'), false);
+});
+
+test('franchir une rivière par un pont n\'arrête pas le mouvement', () => {
+  const me = inf('a', 'blue', '5,0', 4);
+  const r = reach({ map: riverMap, units: [me] }, me);
+  assert.equal(r.get('6,0').stop, false);
+  assert.deepEqual(r.get('7,0').path, ['5,0', '6,0', '7,0']);
 });
 
 test('on ne peut pas finir son mouvement sur une pile déjà pleine', () => {

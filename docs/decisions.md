@@ -209,6 +209,9 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
   règle propre. `DEFAULT_STEPS` et le champ `steps` du modèle restent, sans unité qui s'en serve.
 - Ligne de ravitaillement sans pas vers le bord adverse (`homeward`, `rules/supply.js`) : chaque case est dans la
   même colonne que la précédente ou plus près de son bord. La colonne de la clé `'c,r'` sert de mesure.
+- Rivière franchie hors pont : le mouvement s'arrête sur l'autre rive (`reach` renvoie `stop`, que `doMove` lit pour
+  mettre `mp` à 0, comme l'entrée en ZOC). Le +2 PM reste. Une case atteinte à la fois avec et sans franchissement
+  garde le chemin sans franchissement.
 
 ## Questions ouvertes de Terra Incognita
 

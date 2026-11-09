@@ -13,12 +13,12 @@ auto_invoke: true
 | Coût d'un pas `a → b` | `stepCost(map,a,b,mech)` — `src/rules/movement.js` | Route : `ROAD_COST` (ponts compris) ; sinon `TERRAINS[t].cost.mech` ou `.inf` selon l'unité ; `+RIVER_CROSSING_COST` sur arête de rivière sans route |
 | Mécanisé | `isMech(u)` — `src/rules/units.js` | `arm`, `mech`, `td` |
 | PM disponibles | `u.mp`, rechargé par `beginPhase` à `mpOf(u)` | `mpOf` ÷`OOS_MP_DIVISOR` si isolée |
-| Cases atteignables | `reach(state,u)` → `Map(k → {cost,path,zoc})` — `src/rules/movement.js` | Dijkstra ; on s'arrête en entrant en ZOC ennemie ; pas de ZOC à ZOC ; cases ennemies et liaisons ennemies interdites ; une unité à PM pleins peut toujours avancer d'une case ; arrivée interdite sur une pile pleine |
+| Cases atteignables | `reach(state,u)` → `Map(k → {cost,path,zoc,stop})` — `src/rules/movement.js` | Dijkstra ; on s'arrête en entrant en ZOC ennemie et après une rivière franchie hors pont (`stop`) ; pas de ZOC à ZOC ; cases ennemies et liaisons ennemies interdites ; une unité à PM pleins peut toujours avancer d'une case ; arrivée interdite sur une pile pleine |
 | ZOC | `zocOf(state,side)` — `src/rules/control.js` | Les 6 voisins de chaque unité du camp |
 | Liaison | `bondsOf(state,side)` → `Map(case → [[a,b]])` | Deux amis à `BOND_RANGE` cases, cases communes vides interdites à l'ennemi, rompue si un ennemi s'y trouve déjà |
 | Empilement | `stackCount(state,k,side,except)`, `STACK_LIMIT` | Unités détruites exclues |
 | Sélection | `selectUnit(u)` — `src/loop/orders.js` ; `onHex(k)` — `src/input/map.js` | Toucher une pile plusieurs fois fait passer d'une unité à l'autre |
-| Déplacement | `doMove(u,k,r)` — `src/loop/orders.js` | **Mute l'état en place** : empile un instantané dans `store.undo`, `animatePath`, `placeUnit` sur chaque case du chemin, `mp = 0` si `r.zoc`, sinon `mp - cost` |
+| Déplacement | `doMove(u,k,r)` — `src/loop/orders.js` | **Mute l'état en place** : empile un instantané dans `store.undo`, `animatePath`, `placeUnit` sur chaque case du chemin, `mp = 0` si `r.stop`, sinon `mp - cost` |
 | Prise de ville en marchant | `placeUnit(u,k)` — `src/loop/orders.js` | `townTakenBy` (`src/rules/victory.js`) puis `captured` |
 | Annulation | `undoMove()` — `src/loop/orders.js` | Restaure `pos`, `mp`, `control` (pas le journal) ; pile vidée à chaque phase |
 | Affichage | `renderMap` — `src/render/map.js` | `hl-zoc` (ZOC ennemie teintée pendant le mouvement d'un joueur humain, hors cases ennemies), `hl-reach` / `hl-reachz` (case atteignable en ZOC), liaisons tracées pendant le mouvement (`bond own`/`foe`) |
