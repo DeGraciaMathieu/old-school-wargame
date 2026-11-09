@@ -188,3 +188,22 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
     pour que l'IA les retrouve après une reprise de partie ;
   - l'aspect des terrains (`LOOK`, `render/map.js`) et leur effet expliqué au joueur (`TERRAIN_NOTE`, `hexBlock`)
     restent dans `render/`, indexés par terrain : ce sont du dessin et du texte, pas des règles.
+- Phase 2 (Terra Incognita) : le scénario du Saillant, `buildMap` et `mulberry(MAP_SEED)` sont retirés. Les tests
+  de règles tournent sur une carte posée à la main (`tests/fixtures.js`), indépendante du générateur.
+- Écarts au PRD de Terra Incognita :
+  - pas de nouveau tirage de la carte entière (`MAPGEN_TRIES`) : les invariants (routes reliant les deux bords,
+    même total de PV par bande) sont garantis par construction ; seul le placement des villes est retenté
+    (`TOWN_TRIES`) ;
+  - `TOWN_LAYOUT` remplace `TOWNS_PER_SIDE`, `NEUTRAL_TOWNS`, `VP_PER_SIDE` et `VP_CENTER` ; `EXITS_PER_SIDE`
+    remplace `ENTRY_MIN` ;
+  - couleurs des camps nommées `--bleu` et `--rouge`, parce que `--red` sert déjà aux alertes ;
+  - l'IA n'avance après combat qu'avec une unité qui n'est pas en garnison sur une ville à PV de son camp.
+
+## Questions ouvertes de Terra Incognita
+
+- **Équité de la carte** : la carte est aléatoire, sans miroir ni équilibrage du terrain. Sujet à part.
+- **Teinte de la ZOC ennemie** : elle est rouge pendant le mouvement, quel que soit le camp. Quand on joue les
+  Bleus, elle se confond avec la couleur des Rouges. À garder ou à changer ?
+- **Équilibre** : valeurs de départ (ordre de bataille, PV, `VP_WIN_MARGIN`, nombre de rivières, poids de l'IA) à
+  régler par des parties d'essai.
+- **Son** : l'ambiance (barrage d'aube, convoi) reste celle du Saillant.

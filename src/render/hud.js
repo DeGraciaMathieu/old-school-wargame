@@ -1,24 +1,26 @@
-import { COLL, FIRST_DAY, PHASES, TURNS, VP_DRAW, VP_GERMAN_WIN, VP_TOTAL, TURNS_PER_DAY } from '../config.js';
+import { COLL, SIDE, TURNS, TURNS_PER_DAY, VP_WIN_MARGIN } from '../config.js';
 import * as victory from '../rules/victory.js';
-import { esc, turnLabel } from './labels.js';
-import { U, eligibleAttackers, isAI, odds, store, vpOf } from '../state/store.js';
+import { dayOf, esc, turnLabel } from './labels.js';
+import { U, curPhase, eligibleAttackers, isAI, odds, store, vpOf } from '../state/store.js';
 
 /* ---------- Piste des tours, score, barre d'action mobile ---------- */
 export function renderTrack(){
-  let s='';for(let t=1;t<=TURNS;t++){const a=store.state.arrivals.filter(x=>x.turn===t);s+=`<div class="tcell${t<store.state.turn?' past':''}${t===store.state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+(x.side==='de'?'allemands':'américains')+' : '+x.text).join('')}"><b>${FIRST_DAY+Math.floor((t-1)/TURNS_PER_DAY)}</b>${t%TURNS_PER_DAY?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">${x.side==='de'?'DE':'US'}</span>`).join('')}</span>`:''}</div>`;}
+  let s='';for(let t=1;t<=TURNS;t++){const a=store.state.arrivals.filter(x=>x.turn===t);s+=`<div class="tcell${t<store.state.turn?' past':''}${t===store.state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+SIDE[x.side].toLowerCase()+' : '+x.text).join('')}"><b>J${dayOf(t)}</b>${t%TURNS_PER_DAY?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">${SIDE[x.side][0]}</span>`).join('')}</span>`:''}</div>`;}
   document.getElementById('track').innerHTML=s;
 }
 export const scoreEl=document.getElementById('mapscore');
 export function renderScore(){
-  const vp=vpOf('de'),st={de:['victoire allemande','de'],draw:['match nul','mid'],us:['victoire américaine','us']}[victory.outcome(vp)];
-  let s=`<button type="button" class="vpsum" aria-expanded="${store.scoreOpen}"><b>${vp}</b><span class="lbl">PV allemands sur ${VP_TOTAL}<em class="${st[1]}">${store.state.over?'Résultat':'Tendance'} : ${st[0]}</em></span><span class="chev" aria-hidden="true">${store.scoreOpen?'▴':'▾'}</span></button>`;
-  // Détail dépliable : barre et seuils, puis villes à PV avec leur contrôleur
-  if(store.scoreOpen){s+=`<div class="vpdetail"><div class="vpbar"><i style="width:${vp/VP_TOTAL*100}%"></i><u style="left:${VP_DRAW/VP_TOTAL*100}%"></u><u style="left:${VP_GERMAN_WIN/VP_TOTAL*100}%"></u></div><div class="vplegend"><span>Victoire US ≤ 2</span><span>Nul 3–4</span><span>Victoire allemande ≥ 5</span></div><ul class="towns">`;const towns=store.state.map.towns;for(const id in towns)if(towns[id].vp)s+=`<li><span class="dot ${store.state.control[id]}"></span>${towns[id].name}<em>${towns[id].vp} PV</em></li>`;s+='</ul></div>';}
+  const vb=vpOf('blue'),vr=vpOf('red'),towns=store.state.map.towns,total=Object.values(towns).reduce((n,t)=>n+t.vp,0);
+  const res=victory.outcome(vb,vr),cls=res==='draw'?'mid':res;
+  const txt=(store.state.over?{blue:'victoire bleue',draw:'match nul',red:'victoire rouge'}:{blue:'avantage bleu',draw:'match nul',red:'avantage rouge'})[res];
+  let s=`<button type="button" class="vpsum" aria-expanded="${store.scoreOpen}"><b><span class="blue">${vb}</span>–<span class="red">${vr}</span></b><span class="lbl">PV bleus – rouges<em class="${cls}">${store.state.over?'Résultat':'Tendance'} : ${txt}</em></span><span class="chev" aria-hidden="true">${store.scoreOpen?'▴':'▾'}</span></button>`;
+  // Détail dépliable : PV de chaque camp sur le total, seuil de victoire, puis villes à PV avec leur contrôleur
+  if(store.scoreOpen){s+=`<div class="vpdetail"><div class="vpbar"><i style="width:${vb/total*100}%"></i><i class="red" style="width:${vr/total*100}%"></i></div><div class="vplegend"><span>Bleus ${vb}</span><span>Victoire à ${VP_WIN_MARGIN} PV d'écart</span><span>Rouges ${vr}</span></div><ul class="towns">`;for(const id in towns)if(towns[id].vp)s+=`<li><span class="dot ${store.state.control[id]||'neutral'}"></span>${towns[id].name}<em>${towns[id].vp} PV</em></li>`;s+='</ul></div>';}
   scoreEl.innerHTML=s;
 }
 export const actEl=document.getElementById('mapact');
 export function renderAct(){
-  const ph=PHASES[store.state.phase];let h='';
+  const ph=curPhase();let h='';
   if(!store.state.over&&!isAI(ph.side)&&!store.busy){
     if(store.sel.result&&store.sel.result.adv.length){
       const r=store.sel.result,map=store.state.map,where=map.hex[r.k].town?map.towns[map.hex[r.k].town].name:'la case';

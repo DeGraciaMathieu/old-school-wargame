@@ -19,7 +19,7 @@ function captured(id,side){
 }
 export function captureEffects(id,side){
   const t=store.state.map.towns[id];AUDIO.stamp();
-  if(t.vp)setTimeout(()=>{fx(townKey(store.state.map,id),(side==='de'?'+':'−')+t.vp+' PV',side==='de'?'':'bad');pulseScore();},CAPTURE_FX_DELAY);
+  if(t.vp)setTimeout(()=>{fx(townKey(store.state.map,id),'+'+t.vp+' PV');pulseScore();},CAPTURE_FX_DELAY);
 }
 export async function doMove(u,k,r){
   store.busy=true;

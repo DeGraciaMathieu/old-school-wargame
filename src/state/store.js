@@ -7,11 +7,14 @@ import * as control from '../rules/control.js';
 import * as journal from '../rules/journal.js';
 import * as movement from '../rules/movement.js';
 import * as supply from '../rules/supply.js';
+import * as turn from '../rules/turn.js';
 import * as victory from '../rules/victory.js';
 
 // État de la partie et état d'interface partagés entre les couches
 export const store={state:null,busy:false,undo:[],sel:{},zoom:1,scoreOpen:false};
 export const isAI=s=>!!store.state&&store.state.mode==='ai-'+s;
+// Phase en cours : camp actif, mouvement ou combats, libellé
+export const curPhase=()=>turn.phaseOf(store.state);
 export const U=id=>store.state.units.find(u=>u.id===id);
 export const unitsAt=k=>control.unitsAt(store.state,k);
 export const occ=side=>control.occ(store.state,side);

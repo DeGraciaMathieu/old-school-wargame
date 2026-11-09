@@ -1,6 +1,6 @@
-import { AUDIO_PREF_KEY, PHASES } from '../config.js';
+import { AUDIO_PREF_KEY } from '../config.js';
 import * as combat from '../rules/combat.js';
-import { store } from '../state/store.js';
+import { curPhase, store } from '../state/store.js';
 
 /* ---------- Son : tout est synthétisé avec Web Audio ---------- */
 export const AUDIO=(()=>{
@@ -65,8 +65,8 @@ export const AUDIO=(()=>{
     },
     radio(side,d=0){if(!ok())return;const t=now()+d;
       noise({t,f:1800,q:1.4,dur:0.14,a:0.004,gain:0.12});
-      const f=side==='de'?640:760;let x=0.2;
-      for(const ch of side==='de'?'-..':'..-'){const l=ch==='-'?0.17:0.06;tone({t:t+x,f,dur:l,a:0.006,sus:true,gain:0.08});x+=l+0.06;}
+      const f=side==='red'?640:760;let x=0.2;
+      for(const ch of side==='red'?'-..':'..-'){const l=ch==='-'?0.17:0.06;tone({t:t+x,f,dur:l,a:0.006,sus:true,gain:0.08});x+=l+0.06;}
       noise({t:t+x+0.05,f:2100,q:1.6,dur:0.07,gain:0.09});},
     barrage(d=0,heavy=false){if(!ok())return;const t=now()+d,n=heavy?12:5;
       for(let i=0;i<n;i++)S.boom(t+i*(heavy?0.22:0.4)+Math.random()*0.25,(heavy?0.8:0.6)+Math.random()*0.4,heavy&&i%3===0?0:1);},
@@ -74,7 +74,7 @@ export const AUDIO=(()=>{
       noise({t,brown:true,type:'lowpass',f:260,dur:2.2,a:1,gain:0.32});
       for(let x=0.4;x<2.5;x+=0.06+Math.random()*0.05)noise({t:t+x,f:3000+Math.random()*1500,q:6,dur:0.02,gain:0.02+0.05*Math.sin(Math.PI*x/2.6)});},
     stamp(d=0.12){if(!ok())return;const t=now()+d;tone({t,f:110,f2:60,dur:0.12,gain:0.45});noise({t,f:600,q:0.8,dur:0.08,gain:0.4});noise({t:t+0.01,f:5000,q:0.7,dur:0.05,gain:0.06});},
-    end(){if(!ok())return;S.radio('us');S.barrage(0.9);}
+    end(){if(!ok())return;S.radio('blue');S.barrage(0.9);}
   };
   function startAmb(){
     if(!ctx||ambNodes)return;const t=now();
@@ -87,7 +87,7 @@ export const AUDIO=(()=>{
     ambNodes=[src,l1,l2];
     const loop=()=>{if(!ambNodes)return;
       if(pref.on&&!document.hidden){const n=1+Math.floor(Math.random()*3),t0=now();for(let i=0;i<n;i++)S.boom(t0+i*(0.3+Math.random()*0.5),0.4+Math.random()*0.5,1,amb);}
-      const fight=store.state&&!store.state.over&&PHASES[store.state.phase].kind==='combat';
+      const fight=store.state&&!store.state.over&&curPhase().kind==='combat';
       ambTimer=setTimeout(loop,(fight?3500:8000)+Math.random()*9000);};
     ambTimer=setTimeout(loop,2500);
   }

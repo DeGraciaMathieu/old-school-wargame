@@ -1,10 +1,10 @@
 ---
 name: architecture
-description: Use when you need to know where a module lives, what it depends on, or where new code must go in Le Saillant — before any change that touches more than one file or adds a file.
+description: Use when you need to know where a module lives, what it depends on, or where new code must go in Terra Incognita — before any change that touches more than one file or adds a file.
 auto_invoke: true
 ---
 
-# Architecture de Le Saillant
+# Architecture de Terra Incognita
 
 Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.html` →
 `<script type="module" src="src/main.js">`. Styles : `styles.css`.
@@ -13,10 +13,12 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 
 | Module | Rôle | Dépendances clés |
 | --- | --- | --- |
-| `src/config.js` | Toutes les constantes : géométrie (`R`, `COLS`, `ROWS`), carte (`TOWNS`, `RIVERS`, `ROADS`, `MAP_SEED`), terrains (`TERRAINS`), coûts d'arête (`ROAD_COST`, `RIVER_CROSSING_COST`), `STACK_LIMIT`, `BOND_RANGE`, `OOB`, `ARRIVALS`, `PHASES`, `TURNS`, `COLL`/`TH`/`CRT`/`RES`, `SHIFT_RIVER`, `OOS_*`, `VP_*`, `RETREAT_*`, `AI_*`, délais, zoom, clés de stockage ; scénario `SAILLANT` | aucune |
+| `src/config.js` | Toutes les constantes : géométrie (`R`, `COLS`, `ROWS`), terrain (`FOREST_PROB`…), `TERRAINS`, carte générée (`ZONE_*`, `RIVER_*`, `TOWN_LAYOUT`, `TOWN_*`, `EXITS_PER_SIDE`), coûts d'arête (`ROAD_COST`, `RIVER_CROSSING_COST`), `STACK_LIMIT`, `BOND_RANGE`, `OOB_TEMPLATE`, `UNIT_TYPES`, `GARRISON_TYPES`, camps (`SIDE`, `HOME`, `ARMY`), phases (`PHASE_COUNT`, `INITIATIVE`, `PHASE_LABELS`), `TURNS`, `SEED_MAX`, `COLL`/`TH`/`CRT`/`RES`, `SHIFT_RIVER`, `OOS_*`, `VP_WIN_MARGIN`, `RETREAT_*`, `AI_*`, délais, zoom, clés de stockage | aucune |
 | `src/rules/hex.js` | Grille : `key`, `unkey`, `inMap`, `neighbors`, `dist`, `hexLine`, `ek` | config |
-| `src/rules/map.js` | `buildMap(sc)` → carte JSON `{hex, rivers, roads, roadChains, towns}`, portée par `state.map` ; `townKey(map,id)`, `eastOf(river,map,k)` | hex |
-| `src/rules/units.js` | `other`, `onMap`, `isMech`, `vals`, `atkOf`, `mpOf` | config |
+| `src/rules/mapgen.js` | `generateMap(rng)` → carte JSON `{hex, rivers, roads, roadChains, towns, riverLines, exits}`, portée par `state.map` ; `BANDS` | hex |
+| `src/rules/map.js` | `townKey(map,id)` | hex |
+| `src/rules/deploy.js` | `armyOf(map,side)` (ordre de bataille déployé), `arrivalsOf(side)` (annonces de renforts), `sideOfBand(band)` | config, hex |
+| `src/rules/units.js` | `other`, `homeCol`, `onMap`, `isMech`, `vals`, `atkOf`, `mpOf` | config |
 | `src/rules/control.js` | `unitsAt`, `occ`, `stackCount`, `zocOf`, `bondsOf` | hex, units |
 | `src/rules/movement.js` | `stepCost`, `reach` | map, units, control |
 | `src/rules/supply.js` | `supplyOf`, `supplyPath` | map, control |
@@ -24,14 +26,14 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/rules/journal.js` | `pushLog`, `captureText` (aides internes) | victory |
 | `src/rules/occupation.js` | `enterHex` : entrée sur une case avec prise de ville (aide interne) | victory, journal |
 | `src/rules/combat.js` | `eligibleAttackers`, `canTarget`, `odds`, `resolveCombat` | control, occupation, journal |
-| `src/rules/turn.js` | `beginPhase`, `nextPhase`, `freeHexNear` | supply, control, occupation |
-| `src/rules/rng.js` | `createRng(seed)` (tests) | — |
-| `src/state/store.js` | `store` `{state, busy, undo, sel, zoom, scoreOpen}`, `isAI`, `U`, enveloppes de requêtes, `log`, `save`, `loadSaved`, `createGame` | rules |
-| `src/render/geometry.js` | `SVGW`, `SVGH`, `center`, `ck`, `corners`, `POLY` | hex, map |
-| `src/render/labels.js` | `turnLabel`, `goodFor`, `esc` | config |
+| `src/rules/turn.js` | `phaseOf`, `beginPhase`, `nextPhase`, `freeHexNear` | supply, control, occupation |
+| `src/rules/rng.js` | `createRng(seed)` (carte d'une partie, tests) | — |
+| `src/state/store.js` | `store` `{state, busy, undo, sel, zoom, scoreOpen}`, `isAI`, `curPhase`, `U`, enveloppes de requêtes, `log`, `save`, `loadSaved`, `createGame(mode,seed)` | rules |
+| `src/render/geometry.js` | `SVGW`, `SVGH`, `center`, `ck`, `corners`, `POLY` (toute la grille) | hex |
+| `src/render/labels.js` | `dayOf`, `turnLabel`, `goodFor`, `esc` | config |
 | `src/render/map.js` | `drawStatic`, `renderMap`, `counter`, `counterIcon`, `fx`, `impact`, `animatePath`, `applyZoom`, `LIVE_CUT`, `pocketsSvg` | geometry, store |
 | `src/render/panel.js` | `renderPanel`, `hexBlock`, `combatBlock`, `resultBlock`, `unitMeta` | map, store |
-| `src/render/hud.js` | `renderTrack`, `renderScore` (badge de PV dépliable), `renderAct`, `pulseScore`, `scoreEl` | store |
+| `src/render/hud.js` | `renderTrack`, `renderScore` (badge de PV Bleus–Rouges dépliable), `renderAct`, `pulseScore`, `scoreEl` | store |
 | `src/render/sheets.js` | `openModal`, `closeModal`, `modeButtons`, `startScreen`, `rulesScreen` | store |
 | `src/render/index.js` | `render()` : piste, carte, score, barre d'action, panneau | render/* |
 | `src/render/audio.js` | `AUDIO` (Web Audio synthétisé, préférences dans `localStorage`) | store (lecture de la phase) |
@@ -40,8 +42,8 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/input/controls.js` | Dépliage du badge de PV (`store.scoreOpen`), fenêtres (`data-mode`, `data-resume`, `data-rules`, `data-end-confirm`, `data-close`), Échap, zoom, son, `syncSound` | loop, render |
 | `src/loop/turn.js` | `newGame`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
 | `src/loop/orders.js` | `useDice`, `doMove`, `undoMove`, `selectUnit`, `placeUnit`, `resolve`, `advance`, `captureEffects` | rules/combat, render, store |
-| `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat`, `field` (Dijkstra mis en cache dans `fieldCache`) | orders, turn, store |
-| `src/main.js` | `useDice(Math.random)`, `drawStatic(buildMap(SAILLANT))`, zoom initial, `startScreen`, import des modules `input/` | tout |
+| `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat` (même logique pour les deux camps), `field` (Dijkstra mis en cache dans `fieldCache`, vidé à chaque partie et reprise) | orders, turn, store |
+| `src/main.js` | `useDice(Math.random)`, `drawStatic` d'une carte générée au hasard, zoom initial, `startScreen`, import des modules `input/` | tout |
 
 ## Flux d'une action
 
@@ -61,12 +63,12 @@ L'IA suit le même chemin : `startPhase` → `setTimeout(runAI, AI_START_DELAY)`
 | Nouvelle valeur (coût, seuil, délai, poids d'IA) | `src/config.js`, section correspondante | Importer là où elle sert |
 | Nouvelle règle de jeu (calcul, légalité) | Fonction pure dans le module `src/rules/` du sous-système, `state` en paramètre | Test dans `tests/<module>.test.js` ; enveloppe dans `state/store.js` si `render/` ou `loop/` en a besoin |
 | Nouvelle transition d'état | `src/rules/`, sur `structuredClone`, renvoyant `{state, …événements}` | Appel depuis `loop/`, puis `store.state = r.state` et effets |
-| Nouvelle donnée de scénario (unité, ville, route) | `OOB`, `ARRIVALS`, `TOWNS`, `ROADS`, `RIVERS` dans `config.js`, regroupés dans `SAILLANT` | Vérifier `tests/map.test.js` (empreinte) et les textes de règles |
+| Ordre de bataille, renforts, génération de carte | `OOB_TEMPLATE`, `UNIT_TYPES`, section « Carte générée » de `config.js` ; logique dans `rules/deploy.js` et `rules/mapgen.js` | Vérifier `tests/deploy.test.js`, `tests/mapgen.test.js` et les textes de règles |
 | Nouvel affichage | `src/render/` (panneau → `panel.js`, carte → `map.js`, fenêtre → `sheets.js`) | Appel depuis `render()` ou `loop/` |
 | Nouveau bouton ou interaction | Balise `data-act="…"` dans le HTML généré par `render/`, traitement dans `onAction` (`input/actions.js`) | Logique dans `loop/` |
 | Nouveau son | Méthode de `AUDIO` dans `render/audio.js` | Appel depuis `loop/` |
 | Comportement de l'IA | `src/loop/ai.js`, poids et seuils dans `config.js` (`AI_*`) | — |
-| Texte de règle affiché | `rulesScreen` / `startScreen` (`render/sheets.js`), `hexBlock` (`render/panel.js`), `endGame` (`loop/turn.js`) | Garder en phase avec `config.js` |
+| Texte de règle affiché | `rulesScreen` / `startScreen` (`render/sheets.js`), `hexBlock` et `TERRAIN_NOTE` (`render/panel.js`), `renderScore` (`render/hud.js`), `endGame` (`loop/turn.js`) | Garder en phase avec `config.js` |
 
 ## Écarts assumés
 

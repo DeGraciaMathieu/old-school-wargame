@@ -1,10 +1,10 @@
-import { BLAST_LIFETIME, FX_LIFETIME, MOVE_ANIM_FALLBACK, MOVE_MS_PER_HEX, PAD, PHASES, R, SHOW_POCKETS, OOS_CUT, OOS_ISOLATED } from '../config.js';
+import { BLAST_LIFETIME, FX_LIFETIME, MOVE_ANIM_FALLBACK, MOVE_MS_PER_HEX, PAD, R, SHOW_POCKETS, OOS_CUT, OOS_ISOLATED } from '../config.js';
 import { DE, DO, key, neighbors, unkey } from '../rules/hex.js';
-import { isMech, onMap, other, vals } from '../rules/units.js';
+import { homeCol, isMech, onMap, other, vals } from '../rules/units.js';
 import { AUDIO } from './audio.js';
 import { HW, POLY, SVGH, SVGW, center, ck, corners } from './geometry.js';
 import { esc, goodFor } from './labels.js';
-import { U, bondsOf, canTarget, isAI, occ, store, supplyOf, supplyPath, unitsAt, zocOf } from '../state/store.js';
+import { U, bondsOf, canTarget, curPhase, isAI, occ, store, supplyOf, supplyPath, unitsAt, zocOf } from '../state/store.js';
 
 /* ---------- Rendu de la carte ---------- */
 export const svg=document.getElementById('map');
@@ -27,9 +27,10 @@ export function drawStatic(map){
     if(map.roads[e]){const mx=(cs[0][0]+cs[1][0])/2,my=(cs[0][1]+cs[1][1])/2;const [ax,ay]=ck(a);const ang=Math.atan2(by-ay,bx-ax)*180/Math.PI;s+=`<rect class="bridge" x="-5" y="-2.6" width="10" height="5.2" transform="translate(${mx.toFixed(1)},${my.toFixed(1)}) rotate(${ang.toFixed(1)})"/>`;}}
   for(const id in map.towns){const t=map.towns[id];const [x,y]=center(t.c,t.r);
     for(const r of LOOK[t.t].bld)s+=`<rect class="bld" x="${(x+r[0]).toFixed(1)}" y="${(y+r[1]).toFixed(1)}" width="${r[2]}" height="${r[3]}"/>`;}
-  const [ox,oy]=center(13,10);s+=`<text class="rlabel" transform="translate(${(ox+HW*0.48).toFixed(0)},${(oy+R*0.9).toFixed(0)}) rotate(-72)">Our</text>`;
-  const [cx2,cy2]=center(8,6);s+=`<text class="rlabel" transform="translate(${(cx2+HW*0.5).toFixed(0)},${(cy2+R*1.3).toFixed(0)}) rotate(-75)">Clerve</text>`;
-  s+=`<text class="mlabel" x="${PAD+4}" y="${SVGH-PAD-2}">← Vers la Meuse</text><text class="mlabel" x="${SVGW-PAD-4}" y="${PAD+10}" text-anchor="end">Allemagne →</text>`;
+  // Nom de chaque rivière à mi-parcours, le long de sa rive
+  for(const l of map.riverLines){const m=Math.floor(l.b.length/2),[x,y]=l.dir==='ns'?center(l.b[m],m):center(m,l.b[m]);
+    s+=l.dir==='ns'?`<text class="rlabel" transform="translate(${(x-HW*0.5).toFixed(0)},${(y+R*0.3).toFixed(0)}) rotate(-80)">${esc(l.name)}</text>`:`<text class="rlabel" x="${x.toFixed(0)}" y="${(y-R*0.95).toFixed(0)}" text-anchor="middle">${esc(l.name)}</text>`;}
+  s+=`<text class="mlabel" x="${PAD+4}" y="${SVGH-PAD-2}">← Arrières bleus</text><text class="mlabel" x="${SVGW-PAD-4}" y="${PAD+10}" text-anchor="end">Arrières rouges →</text>`;
   s+='</g><g id="hl" pointer-events="none"></g><g id="bonds" pointer-events="none"></g><g id="pockets" pointer-events="none"></g><g id="supline" pointer-events="none"></g><g id="labels" pointer-events="none"></g><g id="units"></g><g id="pklabels" pointer-events="none"></g><g id="fx" pointer-events="none"></g>';
   svg.innerHTML=s;
 }
@@ -37,7 +38,7 @@ export let LIVE_CUT=new Set();
 const rawNb=k=>{const [c,r]=unkey(k);return (r&1?DO:DE).map(([dc,dr])=>[c+dc,r+dr]);};
 function pocketsSvg(){
   let out='',lab='';
-  for(const sd of ['de','us']){
+  for(const sd of ['blue','red']){
     const live=supplyOf(sd),foe=occ(other(sd));
     const cut=store.state.units.filter(u=>onMap(u)&&u.side===sd&&!live.has(u.pos));if(!cut.length)continue;
     const set=new Set();for(const u of cut){set.add(u.pos);for(const n of neighbors(u.pos))if(!foe.has(n))set.add(n);}
@@ -83,7 +84,7 @@ function counter(u){
 }
 export const counterIcon=u=>`<svg viewBox="-18 -18 36 36" width="40" height="40" aria-hidden="true">${counter(u)}</svg>`;
 export function renderMap(){
-  const ph=PHASES[store.state.phase];const human=!isAI(ph.side)&&!store.state.over;
+  const ph=curPhase();const human=!isAI(ph.side)&&!store.state.over;
   let h='';
   // Mouvement d'un joueur humain : ZOC ennemie légèrement teintée, hors cases occupées par l'ennemi
   if(human&&ph.kind==='move'){const eo=occ(other(ph.side));for(const k of zocOf(other(ph.side)))if(!eo.has(k))h+=`<polygon class="hl-zoc" points="${POLY[k]}"/>`;}
@@ -108,15 +109,15 @@ export function renderMap(){
   const [pkS,pkL]=SHOW_POCKETS&&!store.state.over?pocketsSvg():['',''];
   svg.querySelector('#pockets').innerHTML=pkS;
   let sl='';const su=store.sel.unit?U(store.sel.unit):(store.sel.hex&&!store.sel.target&&!store.sel.result?unitsAt(store.sel.hex)[0]:null);
-  if(su&&onMap(su)&&!store.state.over){const p=supplyPath(su.side,su.pos);if(p){const pts=p.map(ck);pts.push([su.side==='us'?2:SVGW-2,pts[pts.length-1][1]]);const d='M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L');sl=`<g class="supl ${su.side}"><path class="h" d="${d}"/><path class="b" d="${d}"/><path class="f" d="${d}"/></g>`;}}
+  if(su&&onMap(su)&&!store.state.over){const p=supplyPath(su.side,su.pos);if(p){const pts=p.map(ck);pts.push([homeCol(su.side)===0?2:SVGW-2,pts[pts.length-1][1]]);const d='M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L');sl=`<g class="supl ${su.side}"><path class="h" d="${d}"/><path class="b" d="${d}"/><path class="f" d="${d}"/></g>`;}}
   svg.querySelector('#supline').innerHTML=sl;svg.querySelector('#pklabels').innerHTML=pkL;
   let l='';
   const towns=store.state.map.towns;
   for(const id in towns){const t=towns[id];const [x,y]=center(t.c,t.r);l+=`<text class="tlabel" x="${x.toFixed(1)}" y="${(y+24).toFixed(1)}">${t.name}</text>`;
-    if(t.vp)l+=`<g class="vp"><circle class="${store.state.control[id]}" cx="${x.toFixed(1)}" cy="${(y-20).toFixed(1)}" r="6"/><text x="${x.toFixed(1)}" y="${(y-17.2).toFixed(1)}">${t.vp}</text></g>`;}
+    if(t.vp)l+=`<g class="vp"><circle class="${store.state.control[id]||'neutral'}" cx="${x.toFixed(1)}" cy="${(y-20).toFixed(1)}" r="6"/><text x="${x.toFixed(1)}" y="${(y-17.2).toFixed(1)}">${t.vp}</text></g>`;}
   svg.querySelector('#labels').innerHTML=l;
   LIVE_CUT=new Set();
-  if(!store.state.over)for(const sd of ['de','us']){const live=supplyOf(sd);for(const u of store.state.units)if(onMap(u)&&u.side===sd&&!live.has(u.pos))LIVE_CUT.add(u.id);}
+  if(!store.state.over)for(const sd of ['blue','red']){const live=supplyOf(sd);for(const u of store.state.units)if(onMap(u)&&u.side===sd&&!live.has(u.pos))LIVE_CUT.add(u.id);}
   const by={};for(const u of store.state.units)if(onMap(u))(by[u.pos]=by[u.pos]||[]).push(u);
   let s='';
   for(const k in by){const [x,y]=ck(k);by[k].forEach((u,i)=>{

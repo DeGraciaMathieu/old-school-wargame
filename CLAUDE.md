@@ -1,7 +1,9 @@
-# Le Saillant
+# Terra Incognita
 
-Wargame à hexagones au tour par tour (bataille des Ardennes, route de Bastogne, 16–19 décembre
-1944), en JavaScript vanilla servi en modules ES natifs, contre une IA ou à deux sur le même écran.
+Wargame à hexagones au tour par tour : deux camps fictifs et symétriques, les Bleus (bord ouest) et
+les Rouges (bord est), sur une carte tirée au hasard à chaque partie. JavaScript vanilla servi en
+modules ES natifs, contre une IA ou à deux sur le même écran. Construit sur le moteur du Saillant
+(branche `main`), voir `docs/prd/`.
 
 ## Stack
 
@@ -48,18 +50,21 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
   copie d'une transition.
 - **Le hasard est injecté.** Une règle aléatoire reçoit `rng` en paramètre. En jeu,
   `main.js` appelle `useDice(Math.random)`. Les tests passent `createRng(seed)` ou un dé pipé.
-- Ne pas remplacer `mulberry(MAP_SEED)` dans `rules/map.js` : la carte dépend de sa séquence
-  exacte (empreinte figée dans `tests/map.test.js`).
+- La carte d'une partie se déduit de sa graine seule : `generateMap(createRng(seed))`. Changer
+  le générateur ou ses constantes change toutes les cartes d'une graine donnée.
 - Ne pas changer la forme de l'état sauvegardé sans traiter la migration de `terra-incognita-v1`
   (question ouverte, voir `docs/decisions.md`).
 
 ### État
 
-- La partie vit dans `store.state` : `{mode, turn, phase, control, attacked, log, over, units, map, arrivals, aiHints}`.
-  Elle est créée par `createGame(mode, scenario)` à partir d'un scénario de `config.js` (`SAILLANT`) :
-  carte, renforts annoncés (`arrivals`) et objectifs de l'IA (`aiHints`) sont copiés dans l'état.
-  `map` est la carte de la partie, en JSON simple : `{hex, rivers, roads, roadChains, towns}`
+- La partie vit dans `store.state` : `{mode, seed, turn, phase, control, attacked, log, over, units, map, arrivals}`.
+  Elle est créée par `createGame(mode, seed)` : carte générée (`rules/mapgen.js`), armées déployées
+  (`rules/deploy.js`), renforts annoncés (`arrivals`), villes des bandes latérales à leur camp et
+  villes du centre neutres (`control[id] = null`).
+  `map` est la carte de la partie, en JSON simple : `{hex, rivers, roads, roadChains, towns, riverLines, exits}`
   (`rivers` et `roads` indexés par clé d'arête). Les règles la lisent dans `state.map`, jamais dans un module.
+- La phase en cours se lit avec `phaseOf(state)` (`rules/turn.js`, enveloppe `curPhase()`) :
+  l'initiative alterne, les Bleus ouvrent les tours impairs, les Rouges les tours pairs.
   Une unité porte `id, side, name, div, type, v, rv, max, steps, pos, arrived, mp, attacked,
   dead, oos` (+ `turn`, `entry` pour les renforts).
 - L'état d'interface vit à côté : `store.busy`, `store.undo`, `store.sel`, `store.zoom`,
@@ -78,16 +83,18 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
   anglais court (`reach`, `odds`, `supplyOf`) ; constantes de `config.js` en `MAJUSCULES_SNAKE`.
 - Vocabulaire du domaine : hexagone, case, tour, phase, PM (points de mouvement), pas
   (step), PV (points de victoire), ZOC (zone de contrôle), liaison, ravitaillement, coupée,
-  isolée, repli, avance après combat, renforts, CRT. Camps : `'de'` (Allemands) et `'us'`
-  (Américains). Types d'unité : `arm`, `mech`, `inf`, `ab`, `eng`, `td`.
+  isolée, repli, avance après combat, renforts, CRT, ville neutre, bande, initiative. Camps :
+  `'blue'` (Bleus, bord ouest) et `'red'` (Rouges, bord est). Types d'unité : `arm`, `mech`, `inf`,
+  `ab`, `eng`, `td`.
 - Clé d'hexagone : chaîne `'c,r'` (`key(c,r)`, `unkey(k)`). Clé d'arête : `ek(a,b)`.
 
 ## Conventions visuelles et de domaine
 
 - Le jeu n'a qu'un thème sombre (« table de jeu sombre, carte d'état-major papier ») défini
-  dans `styles.css`. Pas de thème clair.
+  dans `styles.css`. Pas de thème clair. Couleurs des camps : `--bleu` et `--rouge` (`--red` sert
+  aux alertes) ; classes `.blue`, `.red` et `.neutral`.
 - Les textes de règles affichés au joueur sont écrits à la main dans `render/sheets.js`
-  (`rulesScreen`, `startScreen`), `render/panel.js` (`hexBlock`), `render/hud.js` (légende des PV
+  (`rulesScreen`, `startScreen`), `render/panel.js` (`hexBlock`, `TERRAIN_NOTE`), `render/hud.js` (légende des PV
   du badge de score, `renderScore`) et
   `loop/turn.js` (`endGame`). **Toute modification d'une règle doit mettre à jour ces
   textes.** La table CRT et la légende des résultats sont générées depuis `COLL`, `CRT` et

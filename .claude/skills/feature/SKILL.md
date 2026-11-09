@@ -1,6 +1,6 @@
 ---
 name: feature
-description: Use when the user asks to implement a feature or a rule change in Le Saillant, end to end — from understanding the request to tested code and updated documentation.
+description: Use when the user asks to implement a feature or a rule change in Terra Incognita, end to end — from understanding the request to tested code and updated documentation.
 user_invocable: true
 ---
 

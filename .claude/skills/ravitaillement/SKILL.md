@@ -1,6 +1,6 @@
 ---
 name: ravitaillement
-description: Use when touching supply in Le Saillant — supply zone or supply line, cut/isolated status (oos), step loss from lack of supply, supply markers and the supply line drawn on the map.
+description: Use when touching supply in Terra Incognita — supply zone or supply line, cut/isolated status (oos), step loss from lack of supply, supply markers and the supply line drawn on the map.
 auto_invoke: true
 ---
 
@@ -10,7 +10,7 @@ auto_invoke: true
 
 | Concept | Où | Détail |
 | --- | --- | --- |
-| Bord de ravitaillement | `supplyOf` / `supplyPath` — `src/rules/supply.js` | Colonne `0` (ouest) pour `'us'`, `COLS-1` (est) pour `'de'` |
+| Bord de ravitaillement | `supplyOf` / `supplyPath` — `src/rules/supply.js` | `homeCol(side)` (`src/rules/units.js`, d'après `HOME`) : colonne `0` (ouest) pour `'blue'`, `COLS-1` (est) pour `'red'` |
 | Case praticable | `ok(h)` local | Pas une case ennemie ; pas en ZOC ennemie, sauf si une unité amie l'occupe |
 | Franchissement de rivière | `supCross(a,b)` (interne) | Arête de rivière seulement si une route la traverse (pont) |
 | Zone ravitaillée | `supplyOf(state,side)` → `Set` de cases | BFS depuis le bord |

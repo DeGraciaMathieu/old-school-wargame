@@ -1,6 +1,6 @@
 ---
 name: combat
-description: Use when touching attacks in Le Saillant — eligible attackers, targets, odds and column shifts, the CRT, the die roll, step losses, retreats, advance after combat, the combat UI or the AI's attack choices.
+description: Use when touching attacks in Terra Incognita — eligible attackers, targets, odds and column shifts, the CRT, the die roll, step losses, retreats, advance after combat, the combat UI or the AI's attack choices.
 auto_invoke: true
 ---
 
@@ -21,22 +21,23 @@ auto_invoke: true
 | Table des résultats | `CRT[col][die-1]`, `RES[code]` — `config.js` | Codes `A1`, `NE`, `EX`, `D1`, `D2`, `DL`, `DL2`, `DE` |
 | Jet de dé | `1+Math.floor(rng()*DIE_SIDES)` dans `resolveCombat` | `rng` injecté (`diceRng` de `loop/orders.js`, réglé par `useDice` dans `main.js`) |
 | Perte d'un pas | `stepLoss(list)` (interne) | Frappe l'unité la plus forte (pas restants, puis attaque + défense) ; `steps<=0` → `dead`, `pos=null` |
-| Repli | `retreatUnit(s,u,n,enemy,fromHexes,captures)` (interne) | Case par case : interdit ennemi, liaison ennemie, pile pleine ; score `RETREAT_ZOC_PENALTY` / `RETREAT_DIST_WEIGHT` / sens du camp / `RETREAT_COVER_BONUS` ; chaque case impossible ou ZOC ennemie non tenue coûte 1 pas |
+| Repli | `retreatUnit(s,u,n,enemy,fromHexes,captures)` (interne) | Case par case : interdit ennemi, liaison ennemie, pile pleine ; score `RETREAT_ZOC_PENALTY` / `RETREAT_DIST_WEIGHT` / sens du camp (vers son bord, `homeCol`) / `RETREAT_COVER_BONUS` (terrain `cover`) ; chaque case impossible ou ZOC ennemie non tenue coûte 1 pas |
 | Prise de ville en repli | `enterHex` — `src/rules/occupation.js` | Remplit `captures` et le journal |
 | Résolution | `resolveCombat(state,k,atkIds,rng)` → `{state,captures,result}` | `result = {k,die,code,o,notes,adv,side,killed}` ; marque `attacked`, journalise |
 | Avance après combat | `result.adv` (ids) ; `advance(uid)` — `src/loop/orders.js` | Possible si la case est vidée ; limite `STACK_LIMIT` |
 | Orchestration | `resolve(k,atk,rng)` — `src/loop/orders.js` | `store.state = r.state`, `captureEffects`, `AUDIO.dice/combat`, `impact` après `IMPACT_DELAY` |
 | Interface | `combatBlock`, `resultBlock` — `src/render/panel.js` ; `renderAct` — `src/render/hud.js` ; `hl-target`/`hl-tsel`/`hl-atk`/`hl-adv` dans `renderMap` | Boutons `data-act` : `toggle`, `attack`, `advance`, `cancel` |
 | Fin des combats | `confirmEndCombat(side)` — `src/input/actions.js` | Liste au plus `END_COMBAT_LIST_MAX` attaques encore possibles |
-| IA | `aiCombat(side)` — `src/loop/ai.js` | Élague les attaquants de `AI_PRUNE_FROM_COL` jusqu'à `AI_PRUNE_KEEP_COL` ; colonne minimale `AI_MIN_COL_*` ; score `fin*AI_COMBAT_COL_WEIGHT + PV + bonus défenseur réduit` ; au plus `AI_COMBAT_GUARD` attaques |
+| IA | `aiCombat(side)` — `src/loop/ai.js` | Même logique pour les deux camps. Élague les attaquants de `AI_PRUNE_FROM_COL` jusqu'à `AI_PRUNE_KEEP_COL` ; colonne minimale `AI_MIN_COL_VP` contre une ville à PV non tenue, `AI_MIN_COL` ailleurs ; score `fin*AI_COMBAT_COL_WEIGHT + PV + bonus défenseur réduit` ; au plus `AI_COMBAT_GUARD` attaques ; avance avec la plus forte unité qui n'est pas en garnison (`garrisoned`) |
 | Effets | `impact(k,code,killed)` — `src/render/map.js` ; `AUDIO.combat(code,killed)` | Cosmétique |
 
 ## Ajouter un décalage de colonne
 
-1. Déclarer `SHIFT_<NOM>` dans `src/config.js`, section Combat.
+1. Décalage lié au terrain de la case : champ `shift` / `armorShift` de `TERRAINS`. Sinon,
+   déclarer `SHIFT_<NOM>` dans `src/config.js`, section Combat.
 2. Dans `odds()` (`src/rules/combat.js`), pousser `['Libellé affiché', SHIFT_<NOM>]` dans
    `shifts` sous la bonne condition (lire `state.map.hex[k]`, `atk`, `defs`).
-3. Ajouter un test dans `tests/combat.test.js` qui construit l'attaque et vérifie
+3. Ajouter un test dans `tests/combat.test.js` (carte `testMap` de `tests/fixtures.js`) qui construit l'attaque et vérifie
    `COLL[odds(...).fin]`.
 4. Mettre à jour le texte « Le rapport attaque/défense est arrondi… » de `rulesScreen`
    (`src/render/sheets.js`).

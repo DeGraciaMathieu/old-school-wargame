@@ -1,4 +1,4 @@
-import { AI_START_DELAY, PHASES, SAILLANT, ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from '../config.js';
+import { AI_START_DELAY, ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from '../config.js';
 import { fieldCache, runAI } from '../loop/ai.js';
 import { endPhase, newGame } from '../loop/turn.js';
 import { AUDIO } from '../render/audio.js';
@@ -6,12 +6,12 @@ import { render } from '../render/index.js';
 import { renderScore, scoreEl } from '../render/hud.js';
 import { applyZoom, drawStatic } from '../render/map.js';
 import { closeModal, modal, rulesScreen, sheet, startScreen } from '../render/sheets.js';
-import { isAI, loadSaved, store } from '../state/store.js';
+import { curPhase, isAI, loadSaved, store } from '../state/store.js';
 
 /* ---------- Interactions : fenêtres, zoom, son ---------- */
 sheet.addEventListener('click',e=>{
-  const m=e.target.closest('[data-mode]');if(m){fieldCache.clear();newGame(m.getAttribute('data-mode'),SAILLANT);return;}
-  if(e.target.closest('[data-resume]')){store.state=loadSaved();drawStatic(store.state.map);closeModal();store.undo=[];store.sel={};render();const ph=PHASES[store.state.phase];if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);return;}
+  const m=e.target.closest('[data-mode]');if(m){fieldCache.clear();newGame(m.getAttribute('data-mode'));return;}
+  if(e.target.closest('[data-resume]')){fieldCache.clear();store.state=loadSaved();drawStatic(store.state.map);closeModal();store.undo=[];store.sel={};render();const ph=curPhase();if(isAI(ph.side))setTimeout(runAI,AI_START_DELAY);return;}
   if(e.target.closest('[data-rules]')){rulesScreen();return;}
   if(e.target.closest('[data-end-confirm]')){closeModal();store.sel={};endPhase();return;}
   if(e.target.closest('[data-close]')){if(store.state)closeModal();else startScreen();}

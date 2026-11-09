@@ -1,6 +1,6 @@
 ---
 name: prd
-description: Use when the user wants a product specification (PRD) for a new feature or rule of Le Saillant before any implementation. Produces a document only, never code.
+description: Use when the user wants a product specification (PRD) for a new feature or rule of Terra Incognita before any implementation. Produces a document only, never code.
 ---
 
 # Rédiger un PRD

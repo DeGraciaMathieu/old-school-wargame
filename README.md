@@ -1,11 +1,12 @@
-# Le Saillant
+# Terra Incognita
 
 > ⚠️ **Ouvrir `index.html` par double-clic ne fonctionne plus.** Le jeu est découpé en
 > modules ES natifs, que les navigateurs ne chargent pas depuis `file://`.
 > Lancez `npm run dev` et ouvrez l'adresse affichée.
 
-Wargame à hexagones au tour par tour : bataille des Ardennes, la route de Bastogne,
-16–19 décembre 1944. Huit tours, contre une IA ou à deux sur le même écran.
+Wargame à hexagones au tour par tour : les Bleus contre les Rouges, deux armées de même force,
+sur une carte tirée au hasard à chaque partie (forêts, rivières, routes, villes). Huit tours,
+contre une IA ou à deux sur le même écran. Construit sur le moteur du Saillant (branche `main`).
 
 ## Prérequis
 
@@ -34,8 +35,8 @@ tests de comportement formulés dans le vocabulaire du jeu.
 
 | Dossier | Rôle |
 | --- | --- |
-| `src/config.js` | Constantes du scénario : carte, ordre de bataille, table des résultats, seuils, délais |
-| `src/rules/` | Règles pures : grille, carte, mouvement, contrôle, ravitaillement, combat, victoire, tours |
+| `src/config.js` | Constantes : terrains, génération de carte, ordre de bataille, table des résultats, seuils, IA, délais |
+| `src/rules/` | Règles pures : grille, génération de carte, déploiement, mouvement, contrôle, ravitaillement, combat, victoire, tours |
 | `src/state/` | État partagé (`store`), requêtes liées à la partie en cours, sauvegarde |
 | `src/render/` | Tout ce qui écrit à l'écran : carte SVG, panneau, piste, fenêtres, son |
 | `src/input/` | Écouteurs d'événements : carte, boutons, fenêtres, zoom, son |
@@ -43,3 +44,4 @@ tests de comportement formulés dans le vocabulaire du jeu.
 | `src/main.js` | Point d'entrée : câblage, dés, premier affichage |
 | `styles.css` | Feuille de style |
 | `docs/decisions.md` | Décisions du refactor et questions ouvertes |
+| `docs/prd/` | Spécifications : extraction du cœur, Terra Incognita |

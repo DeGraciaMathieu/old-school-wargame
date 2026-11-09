@@ -1,21 +1,22 @@
-import { AI_START_DELAY, AUDIO_BARRAGE_DELAY, AUDIO_CONVOY_DELAY, AUDIO_CONVOY_DELAY_DAWN, PHASES, SIDE, SUPPLY_FX_DELAY, SUPPLY_FX_STAGGER } from '../config.js';
+import { AI_START_DELAY, AUDIO_BARRAGE_DELAY, AUDIO_CONVOY_DELAY, AUDIO_CONVOY_DELAY_DAWN, SEED_MAX, SIDE, SUPPLY_FX_DELAY, SUPPLY_FX_STAGGER, VP_WIN_MARGIN } from '../config.js';
 import * as turn from '../rules/turn.js';
 import * as victory from '../rules/victory.js';
 import { runAI } from './ai.js';
-import { captureEffects } from './orders.js';
+import { captureEffects, diceRng } from './orders.js';
 import { AUDIO } from '../render/audio.js';
 import { render } from '../render/index.js';
 import { drawStatic, fx } from '../render/map.js';
 import { closeModal, modeButtons, openModal } from '../render/sheets.js';
-import { createGame, isAI, save, store, vpOf } from '../state/store.js';
+import { createGame, curPhase, isAI, save, store, vpOf } from '../state/store.js';
 
 /* ---------- Déroulement : partie, phases, fin de partie ---------- */
-export function newGame(mode,sc){
-  store.state=createGame(mode,sc);drawStatic(store.state.map);
+// Partie neuve sur une carte dont la graine est tirée au dé injecté
+export function newGame(mode){
+  store.state=createGame(mode,1+Math.floor(diceRng()*SEED_MAX));drawStatic(store.state.map);
   store.undo=[];store.sel={};closeModal();startPhase();
 }
 function startPhase(){
-  const ph=PHASES[store.state.phase];
+  const ph=curPhase();
   AUDIO.radio(ph.side);
   if(store.state.phase===0)AUDIO.barrage(AUDIO_BARRAGE_DELAY,store.state.turn===1);
   const r=turn.beginPhase(store.state);
@@ -35,9 +36,9 @@ export function endPhase(){
 }
 function endGame(){
   store.state.over=true;save();render();AUDIO.end();
-  const vp=vpOf('de');
-  const verdict={de:['Victoire allemande','La route de la Meuse est ouverte.'],draw:['Match nul','Le front tient, mais il a cédé du terrain précieux.'],us:['Victoire américaine','Le saillant est contenu, Bastogne et les carrefours tiennent.']}[victory.outcome(vp)];
+  const vb=vpOf('blue'),vr=vpOf('red');
+  const verdict={blue:['Victoire bleue','Les Bleus tiennent la contrée.'],draw:['Match nul','Aucun camp n\'a pris l\'ascendant.'],red:['Victoire rouge','Les Rouges tiennent la contrée.']}[victory.outcome(vb,vr)];
   const towns=store.state.map.towns;
-  const lines=Object.keys(towns).filter(id=>towns[id].vp).map(id=>`<li><span class="dot ${store.state.control[id]}"></span>${towns[id].name}<em>${towns[id].vp} PV · ${SIDE[store.state.control[id]]}</em></li>`).join('');
-  openModal(`<h2>${verdict[0]}</h2><p>${verdict[1]}</p><p>Points de victoire allemands : <b>${vp}</b> (victoire allemande à partir de 5, nul à 3 ou 4).</p><ul class="towns">${lines}</ul><div class="choices">${modeButtons()}</div>`);
+  const lines=Object.keys(towns).filter(id=>towns[id].vp).map(id=>{const c=store.state.control[id];return `<li><span class="dot ${c||'neutral'}"></span>${towns[id].name}<em>${towns[id].vp} PV · ${c?SIDE[c]:'Neutre'}</em></li>`;}).join('');
+  openModal(`<h2>${verdict[0]}</h2><p>${verdict[1]}</p><p>Points de victoire : Bleus <b>${vb}</b>, Rouges <b>${vr}</b> (victoire à partir de ${VP_WIN_MARGIN} points d'écart, sinon nul).</p><ul class="towns">${lines}</ul><div class="choices">${modeButtons()}</div>`);
 }

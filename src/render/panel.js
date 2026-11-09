@@ -1,9 +1,10 @@
-import { COLL, CRT, PHASES, RES, SIDE, TERRAINS, TURNS, OOS_ISOLATED } from '../config.js';
+import { COLL, CRT, HOME, RES, SIDE, TERRAINS, TURNS, OOS_ISOLATED } from '../config.js';
 import { ek, neighbors } from '../rules/hex.js';
+import { phaseOf } from '../rules/turn.js';
 import { atkOf, other, vals } from '../rules/units.js';
 import { esc, turnLabel } from './labels.js';
 import { LIVE_CUT, counterIcon } from './map.js';
-import { U, bondsOf, eligibleAttackers, isAI, odds, store, supplyPath, unitsAt } from '../state/store.js';
+import { U, bondsOf, curPhase, eligibleAttackers, isAI, odds, store, supplyPath, unitsAt } from '../state/store.js';
 
 /* ---------- Rendu du panneau ---------- */
 export const panel=document.getElementById('panel');
@@ -14,16 +15,17 @@ function unitMeta(u,ph){
   return `<b>${esc(u.name)}</b><span>${esc(u.div)}${st.length?' · '+st.join(' · '):''}</span>`;
 }
 // Effet du terrain tel qu'il est expliqué au joueur, case par case
-const TERRAIN_NOTE={clear:'1 PM',forest:'2 PM (3 blindés), −1 en défense',town:'−1 en défense',city:'−2 en défense'};
+const TERRAIN_NOTE={clear:'1 PM',forest:'2 PM (3 blindés, mécanisés et chasseurs de chars), −1 en défense',town:'−1 en défense',city:'−2 en défense'};
 function hexBlock(k,ph){
   const map=store.state.map,h=map.hex[k],t=h.town?map.towns[h.town]:null,us=unitsAt(k);
   const rivers=neighbors(k).filter(n=>map.rivers[ek(k,n)]).length;
   let s=`<div class="box"><span class="eyebrow">Hexagone ${k}</span><h3>${t?t.name:TERRAINS[h.t].label}</h3><dl class="kv"><dt>Terrain</dt><dd>${TERRAINS[h.t].label} · ${TERRAIN_NOTE[h.t]}</dd>`;
   if(rivers)s+=`<dt>Rivière</dt><dd>+2 PM pour la traverser hors pont</dd>`;
-  const bd=['de','us'].find(sd=>bondsOf(sd).has(k));
-  if(us.length){const su=(store.sel.unit&&U(store.sel.unit).pos===k)?U(store.sel.unit):us[0],p=supplyPath(su.side,su.pos);s+=`<dt>Ravitaillement</dt><dd>${p?`ligne de ${p.length-1} case${p.length>2?'s':''} jusqu'au bord ${su.side==='us'?'ouest':'est'}`:'aucune ligne, unité encerclée'}</dd>`;}
+  const bd=['blue','red'].find(sd=>bondsOf(sd).has(k));
+  if(us.length){const su=(store.sel.unit&&U(store.sel.unit).pos===k)?U(store.sel.unit):us[0],p=supplyPath(su.side,su.pos);s+=`<dt>Ravitaillement</dt><dd>${p?`ligne de ${p.length-1} case${p.length>2?'s':''} jusqu'au bord ${HOME[su.side]==='west'?'ouest':'est'}`:'aucune ligne, unité encerclée'}</dd>`;}
   if(bd)s+=`<dt>Liaison</dt><dd>Tenue par les ${SIDE[bd].toLowerCase()}, interdite aux ${SIDE[other(bd)].toLowerCase()}</dd>`;
-  if(t)s+=`<dt>Contrôle</dt><dd><span class="dot ${store.state.control[h.town]}" style="display:inline-block;vertical-align:-1px"></span> ${SIDE[store.state.control[h.town]]}${t.vp?` · ${t.vp} PV`:''}</dd>`;
+  const ctl=store.state.control[h.town];
+  if(t)s+=`<dt>Contrôle</dt><dd><span class="dot ${ctl||'neutral'}" style="display:inline-block;vertical-align:-1px"></span> ${ctl?SIDE[ctl]:'Neutre'}${t.vp?` · ${t.vp} PV`:''}</dd>`;
   s+='</dl>';
   if(us.length){s+='<div class="units">';for(const u of us){s+=`<button type="button" class="ucard${store.sel.unit===u.id?' on':''}" data-act="unit" data-id="${u.id}">${counterIcon(u)}<span class="meta">${unitMeta(u,ph)}</span></button>`;}s+='</div>';}
   return s+'</div>';
@@ -57,13 +59,15 @@ function resultBlock(ph){
   return s+'</div>';
 }
 export function renderPanel(){
-  const ph=PHASES[store.state.phase],ai=isAI(ph.side);
+  const ph=curPhase(),ai=isAI(ph.side);
   const hint=store.state.over?'Partie terminée.':ai?`L'IA joue les ${SIDE[ph.side].toLowerCase()}…`:ph.kind==='move'?'Touchez une de vos unités, puis un hexagone en surbrillance. La zone de contrôle ennemie est teintée de rouge ; un hexagone atteignable qui s\'y trouve est cerclé de rouge : l\'unité s\'y arrête.':'Touchez un ennemi cerclé de rouge pour préparer une attaque. Chaque unité attaque une fois.';
-  let s=`<div class="box phase ${ph.side}"><span class="eyebrow">Tour ${store.state.turn}/${TURNS} · ${turnLabel(store.state.turn)}</span><h2>${ph.label}</h2><p class="hint">${hint}</p><div class="btns"><button class="btn" type="button" data-act="end"${store.busy||ai||store.state.over?' disabled':''}>${ph.kind==='move'?'Terminer le mouvement':'Terminer les combats'}</button>${ph.kind==='move'&&!ai&&store.undo.length&&!store.busy?'<button class="btn ghost" type="button" data-act="undo">Annuler le déplacement</button>':''}</div></div>`;
+  let s=`<div class="box phase ${ph.side}"><span class="eyebrow">Tour ${store.state.turn}/${TURNS} · ${turnLabel(store.state.turn)} · carte n° ${store.state.seed}</span><h2>${ph.label}</h2><p class="hint">${hint}</p><div class="btns"><button class="btn" type="button" data-act="end"${store.busy||ai||store.state.over?' disabled':''}>${ph.kind==='move'?'Terminer le mouvement':'Terminer les combats'}</button>${ph.kind==='move'&&!ai&&store.undo.length&&!store.busy?'<button class="btn ghost" type="button" data-act="undo">Annuler le déplacement</button>':''}</div></div>`;
   if(store.sel.result)s+=resultBlock(ph);
   else if(store.sel.target&&!ai)s+=combatBlock(ph);
   else if(store.sel.hex)s+=hexBlock(store.sel.hex,ph);
-  const next=store.state.arrivals.filter(a=>a.turn>store.state.turn||(a.turn===store.state.turn&&store.state.phase<(a.side==='de'?0:2)));
-  if(next.length)s+=`<div class="box"><span class="eyebrow">Renforts à venir</span><ul class="reinf">${next.map(a=>`<li>Tour ${a.turn} (${turnLabel(a.turn)}) : ${a.text}</li>`).join('')}</ul></div>`;
+  // Renforts pas encore entrés : ils arrivent au début du mouvement de leur camp (phase 0 ou 2 selon l'initiative)
+  const moveAt=a=>phaseOf({turn:a.turn,phase:0}).side===a.side?0:2;
+  const next=store.state.arrivals.filter(a=>a.turn>store.state.turn||(a.turn===store.state.turn&&store.state.phase<moveAt(a)));
+  if(next.length)s+=`<div class="box"><span class="eyebrow">Renforts à venir</span><ul class="reinf">${next.map(a=>`<li>Tour ${a.turn} (${turnLabel(a.turn)}) · ${SIDE[a.side]} : ${a.text}</li>`).join('')}</ul></div>`;
   panel.innerHTML=s;
 }

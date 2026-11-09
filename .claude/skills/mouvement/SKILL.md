@@ -1,6 +1,6 @@
 ---
 name: mouvement
-description: Use when touching movement in Le Saillant — movement point costs, reachable hexes, zones of control, bonds (liaisons), stacking, moving or undoing a move, unit selection on the map, or the AI's movement.
+description: Use when touching movement in Terra Incognita — movement point costs, reachable hexes, zones of control, bonds (liaisons), stacking, moving or undoing a move, unit selection on the map, or the AI's movement.
 auto_invoke: true
 ---
 
@@ -23,7 +23,7 @@ auto_invoke: true
 | Annulation | `undoMove()` — `src/loop/orders.js` | Restaure `pos`, `mp`, `control` (pas le journal) ; pile vidée à chaque phase |
 | Affichage | `renderMap` — `src/render/map.js` | `hl-zoc` (ZOC ennemie teintée pendant le mouvement d'un joueur humain, hors cases ennemies), `hl-reach` / `hl-reachz` (case atteignable en ZOC), liaisons tracées pendant le mouvement (`bond own`/`foe`) |
 | Animation | `animatePath(u,path)` | `MOVE_MS_PER_HEX` par case, désactivée si `prefers-reduced-motion` |
-| IA | `aiMove(side)` — `src/loop/ai.js` | Objectifs lus dans `state.aiHints` : garnisons `slots` (Américains), villes à PV avec `mainCap` pour la ville `main` et `AI_DE_CAP_OTHER` et `AI_DE_VP_WEIGHT` (Allemands) ; distances `field(goal,mech)` ; score de case avec `AI_US_COVER_BONUS`, `AI_ZOC_WEIGHT_*` ; ne bouge que si gain > `AI_MOVE_MIN_GAIN` |
+| IA | `aiMove(side)` — `src/loop/ai.js` | Même logique pour les deux camps, objectifs lus dans `state.map.towns` : `AI_GARRISON_PER_TOWN` garnisons par ville à PV tenue (les plus fortes en PV d'abord), les autres unités visent les villes à PV non tenues (`AI_VP_WEIGHT`, au plus `AI_CAP_PER_TOWN` par ville) ; distances `field(goal,mech)` ; score de case avec `AI_COVER_BONUS` (garnisons), `AI_ZOC_WEIGHT_HOLD` / `AI_ZOC_WEIGHT_ATTACK` ; ne bouge que si gain > `AI_MOVE_MIN_GAIN` |
 
 ## Modifier un coût de mouvement
 
@@ -32,7 +32,7 @@ auto_invoke: true
 2. Mettre à jour `tests/movement.test.js`.
 3. Mettre à jour les textes : section « Mouvement » de `rulesScreen` (`src/render/sheets.js`)
    et `TERRAIN_NOTE` de `hexBlock` (`src/render/panel.js`).
-4. Le champ de l'IA est mis en cache par carte (`fieldCache`, vidé à chaque nouvelle partie) :
+4. Le champ de l'IA est mis en cache par carte (`fieldCache`, vidé à chaque nouvelle partie et reprise) :
    rien à faire si le coût ne dépend que du terrain.
 5. `npm test`.
 

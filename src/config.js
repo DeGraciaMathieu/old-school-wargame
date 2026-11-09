@@ -92,15 +92,15 @@ export const OOS_ATK_DIVISOR=2, OOS_MP_DIVISOR=2;
 export const VP_WIN_MARGIN=2;
 
 /* ---------- IA ---------- */
-export const AI_US_SLOTS=[['bastogne',2],['wiltz',1],['houffalize',1],['noville',1],['longvilly',1],['clervaux',1],['hosingen',1]];
-export const AI_DE_CAP_BASTOGNE=6, AI_DE_CAP_OTHER=3, AI_DE_VP_WEIGHT=1.2;
+// Mouvement : garnisons par ville à PV tenue, plafond d'attaquants par ville visée, poids des PV dans le choix d'objectif
+export const AI_GARRISON_PER_TOWN=1, AI_CAP_PER_TOWN=3, AI_VP_WEIGHT=1.2;
 export const AI_COMBAT_GUARD=30;
-// Déplacement : malus de terrain couvert pour les Américains, poids de la ZOC ennemie, gain minimal pour bouger
-export const AI_US_COVER_BONUS=-0.4, AI_ZOC_WEIGHT_DE=-0.2, AI_ZOC_WEIGHT_US=0.6, AI_MOVE_MIN_GAIN=0.01;
+// Score de case : bonus de couvert pour une garnison, poids de la ZOC ennemie (attaquant / garnison), gain minimal pour bouger
+export const AI_COVER_BONUS=-0.4, AI_ZOC_WEIGHT_ATTACK=-0.2, AI_ZOC_WEIGHT_HOLD=0.6, AI_MOVE_MIN_GAIN=0.01;
 // Combat (indices de colonne de la CRT) : à partir de 5:1 on retire des attaquants tant que le rapport reste à 4:1
 export const AI_PRUNE_FROM_COL=6, AI_PRUNE_KEEP_COL=5;
-// Colonne minimale pour attaquer : Allemands contre une ville à PV / ailleurs ; Américains pour reprendre une ville / ailleurs
-export const AI_MIN_COL_DE_VP=2, AI_MIN_COL_DE=3, AI_MIN_COL_US_RETAKE=3, AI_MIN_COL_US=4;
+// Colonne minimale pour attaquer : contre une ville à PV qu'on ne tient pas / ailleurs
+export const AI_MIN_COL_VP=2, AI_MIN_COL=3;
 export const AI_COMBAT_COL_WEIGHT=2;
 
 /* ---------- Rythme (ms) ---------- */
