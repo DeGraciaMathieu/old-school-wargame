@@ -1,10 +1,10 @@
-import { ROAD_COST, FOREST_COST_MECH, FOREST_COST_INF, CLEAR_COST, RIVER_CROSSING_COST, STACK_LIMIT } from '../config.js';
+import { ROAD_COST, TERRAINS, RIVER_CROSSING_COST, STACK_LIMIT } from '../config.js';
 import { neighbors, ek } from './hex.js';
 import { other, isMech, mpOf } from './units.js';
 import { occ, stackCount, zocOf, bondsOf } from './control.js';
 
 // Coût en PM pour passer de a à b : route ½, forêt 2 (3 mécanisés), rivière hors pont +2
-export function stepCost(map,a,b,mech){if(map.roads[ek(a,b)])return ROAD_COST;let c=map.hex[b].t==='forest'?(mech?FOREST_COST_MECH:FOREST_COST_INF):CLEAR_COST;if(map.rivers[ek(a,b)])c+=RIVER_CROSSING_COST;return c;}
+export function stepCost(map,a,b,mech){if(map.roads[ek(a,b)])return ROAD_COST;const tc=TERRAINS[map.hex[b].t].cost;let c=mech?tc.mech:tc.inf;if(map.rivers[ek(a,b)])c+=RIVER_CROSSING_COST;return c;}
 
 /* Cases atteignables : Dijkstra sur les PM restants, arrêt en ZOC ennemie, pas de ZOC à ZOC,
    cases ennemies et liaisons ennemies interdites ; une unité qui n'a pas bougé avance toujours d'une case */

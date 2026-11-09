@@ -1,4 +1,4 @@
-import { COLL, CRT, END_COMBAT_LIST_MAX, PHASES, TERRAIN } from '../config.js';
+import { COLL, CRT, END_COMBAT_LIST_MAX, PHASES, TERRAINS } from '../config.js';
 import { onMap, other } from '../rules/units.js';
 import { advance, diceRng, resolve, selectUnit, undoMove } from '../loop/orders.js';
 import { endPhase } from '../loop/turn.js';
@@ -17,7 +17,7 @@ function confirmEndCombat(side){
     .filter(k=>canTarget(k,side)).map(k=>({k,o:odds(k,eligibleAttackers(k,side))}))
     .filter(x=>x.o.fin>=0).sort((a,b)=>b.o.fin-a.o.fin);
   if(!opts.length)return false;
-  const map=store.state.map,name=k=>map.hex[k].town?map.towns[map.hex[k].town].name:TERRAIN[map.hex[k].t]+' ('+k+')';
+  const map=store.state.map,name=k=>map.hex[k].town?map.towns[map.hex[k].town].name:TERRAINS[map.hex[k].t].label+' ('+k+')';
   const tone=fin=>{const g=CRT[fin].filter(c=>c!=='A1'&&c!=='NE').length;return g<=2?'A1':g===3?'EX':g===4?'D2':g===5?'DL':'DE';};
   const n=opts.length,s=n>1?'s':'';
   AUDIO.tick();

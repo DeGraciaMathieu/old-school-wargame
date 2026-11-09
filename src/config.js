@@ -32,10 +32,17 @@ export const ROADS=[
   ['15,10','12,10','wiltz','7,11'],
   ['bastogne','2,11']
 ];
-export const TERRAIN={clear:'Dégagé',forest:'Forêt',town:'Village',city:'Ville'};
+// Terrains de case : libellé, coût d'entrée en PM (mécanisés / autres), décalage du défenseur et son libellé,
+// décalage des blindés attaquants (si le défenseur n'a ni blindé ni chasseur de chars), couvert (repli, IA)
+export const TERRAINS={
+  clear:{label:'Dégagé',cost:{mech:1,inf:1},shift:0,armorShift:+1,cover:false},
+  forest:{label:'Forêt',cost:{mech:3,inf:2},shift:-1,shiftLabel:'Défenseur en forêt',armorShift:0,cover:true},
+  town:{label:'Village',cost:{mech:1,inf:1},shift:-1,shiftLabel:'Défenseur dans un village',armorShift:0,cover:true},
+  city:{label:'Ville',cost:{mech:1,inf:1},shift:-2,shiftLabel:'Défenseur dans la ville',armorShift:0,cover:true}
+};
 
 /* ---------- Mouvement ---------- */
-export const ROAD_COST=0.5, FOREST_COST_MECH=3, FOREST_COST_INF=2, CLEAR_COST=1, RIVER_CROSSING_COST=2;
+export const ROAD_COST=0.5, RIVER_CROSSING_COST=2;
 export const STACK_LIMIT=2;
 // Liaison : deux unités amies à cette distance tiennent les cases qui les séparent
 export const BOND_RANGE=2;
@@ -102,7 +109,7 @@ export const RES={A1:'L\'attaquant perd 1 pas',NE:'Sans effet',D1:'Le défenseur
 export const DIE_SIDES=6;
 // Choix de la case de repli : éviter une ZOC ennemie non tenue, s'éloigner des attaquants, préférer le couvert
 export const RETREAT_ZOC_PENALTY=-100, RETREAT_DIST_WEIGHT=10, RETREAT_COVER_BONUS=0.5;
-export const SHIFT_FOREST=-1, SHIFT_TOWN=-1, SHIFT_CITY=-2, SHIFT_RIVER=-1, SHIFT_ARMOR_CLEAR=+1;
+export const SHIFT_RIVER=-1;
 
 /* ---------- Ravitaillement ---------- */
 export const OOS_CUT=1, OOS_ISOLATED=2;

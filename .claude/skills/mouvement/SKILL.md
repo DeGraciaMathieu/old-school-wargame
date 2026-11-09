@@ -10,7 +10,7 @@ auto_invoke: true
 
 | Concept | Où | Détail |
 | --- | --- | --- |
-| Coût d'un pas `a → b` | `stepCost(map,a,b,mech)` — `src/rules/movement.js` | Route : `ROAD_COST` (ponts compris) ; sinon forêt `FOREST_COST_MECH`/`FOREST_COST_INF`, autre `CLEAR_COST` ; `+RIVER_CROSSING_COST` sur arête de rivière sans route |
+| Coût d'un pas `a → b` | `stepCost(map,a,b,mech)` — `src/rules/movement.js` | Route : `ROAD_COST` (ponts compris) ; sinon `TERRAINS[t].cost.mech` ou `.inf` selon l'unité ; `+RIVER_CROSSING_COST` sur arête de rivière sans route |
 | Mécanisé | `isMech(u)` — `src/rules/units.js` | `arm`, `mech`, `td` |
 | PM disponibles | `u.mp`, rechargé par `beginPhase` à `mpOf(u)` | `mpOf` ÷`OOS_MP_DIVISOR` si isolée |
 | Cases atteignables | `reach(state,u)` → `Map(k → {cost,path,zoc})` — `src/rules/movement.js` | Dijkstra ; on s'arrête en entrant en ZOC ennemie ; pas de ZOC à ZOC ; cases ennemies et liaisons ennemies interdites ; une unité à PM pleins peut toujours avancer d'une case ; arrivée interdite sur une pile pleine |
@@ -27,11 +27,11 @@ auto_invoke: true
 
 ## Modifier un coût de mouvement
 
-1. Changer la constante dans `src/config.js` (section Mouvement), ou ajouter un cas dans
-   `stepCost` (`src/rules/movement.js`) avec une nouvelle constante.
+1. Changer le coût du terrain dans `TERRAINS` ou les constantes d'arête (`ROAD_COST`,
+   `RIVER_CROSSING_COST`) dans `src/config.js` (section Carte et Mouvement).
 2. Mettre à jour `tests/movement.test.js`.
 3. Mettre à jour les textes : section « Mouvement » de `rulesScreen` (`src/render/sheets.js`)
-   et ligne « Terrain » de `hexBlock` (`src/render/panel.js`).
+   et `TERRAIN_NOTE` de `hexBlock` (`src/render/panel.js`).
 4. Le champ de l'IA est mis en cache par carte (`fieldCache`, vidé à chaque nouvelle partie) :
    rien à faire si le coût ne dépend que du terrain.
 5. `npm test`.

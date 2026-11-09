@@ -11,7 +11,7 @@ auto_invoke: true
 | Concept | Où | Détail |
 | --- | --- | --- |
 | Grille | `COLS`×`ROWS` (16×12), hexagones pointe en haut, lignes impaires décalées — `src/rules/hex.js` | Clé `'c,r'` |
-| Terrain | `buildMap(seed)` — `src/rules/map.js` | `mulberry(MAP_SEED)` : forêts par bande de colonnes (`FOREST_PROB*`, `FOREST_*_COL`), lissage `TERRAIN_SMOOTH_PASSES`, teinte `alt` (`CLEAR_ALT_SHADE_PROB`) ; types `clear`, `forest`, `town`, `city` (libellés `TERRAIN`) |
+| Terrain | `buildMap(seed)` — `src/rules/map.js` | `mulberry(MAP_SEED)` : forêts par bande de colonnes (`FOREST_PROB*`, `FOREST_*_COL`), lissage `TERRAIN_SMOOTH_PASSES`, teinte `alt` (`CLEAR_ALT_SHADE_PROB`) ; types `clear`, `forest`, `town`, `city` (table `TERRAINS` : libellé, coût, décalages, couvert ; aspect dans `LOOK` de `render/map.js`) |
 | Villes | `TOWNS` — `config.js` | `{c,r,name,t,vp}` ; `map.hex[k].town` ; `map.towns` ; `townKey(map,id)` |
 | Rivières | `RIVERS` (`b[r]` = première colonne de la rive est) → `map.rivers` | `eastOfOur(map,k)` |
 | Routes | `ROADS` (points de passage : villes ou `'c,r'`) → `map.roads`, `map.roadChains` via `hexLine` | Ponts dessinés là où une route coupe une rivière |

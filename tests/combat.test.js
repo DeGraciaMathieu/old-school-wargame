@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { odds, canTarget, resolveCombat } from '../src/rules/combat.js';
 import { dist } from '../src/rules/hex.js';
 import { buildMap } from '../src/rules/map.js';
-import { COLL, MAP_SEED } from '../src/config.js';
+import { COLL, MAP_SEED, TERRAINS } from '../src/config.js';
 
 const map = buildMap(MAP_SEED);
 
@@ -28,6 +28,15 @@ test('des blindés contre un défenseur sans blindés en terrain dégagé gagnen
   const atk = [unit('a', 'de', '4,5', 'arm', 4, 4)];
   const state = { units: [...atk, unit('d', 'us', '5,5', 'inf', 1, 2)], attacked: [], map };
   assert.equal(COLL[odds(state, '5,5', atk).fin], '3:1');
+});
+
+test('les décalages de terrain se lisent dans la table des terrains', () => {
+  const atk = [unit('a', 'de', '3,7', 'inf', 6, 4)];
+  const state = { units: [...atk, unit('d', 'us', '2,7', 'inf', 1, 2)], attacked: [], map };
+  const before = TERRAINS.city.shift;
+  TERRAINS.city.shift = -3;
+  try { assert.deepEqual(odds(state, '2,7', atk).shifts, [['Défenseur dans la ville', -3]]); }
+  finally { TERRAINS.city.shift = before; }
 });
 
 test('sous 1:2, l\'attaque est impossible', () => {

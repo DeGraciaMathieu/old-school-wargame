@@ -9,21 +9,24 @@ import { U, bondsOf, canTarget, isAI, occ, store, supplyOf, supplyPath, unitsAt,
 /* ---------- Rendu de la carte ---------- */
 export const svg=document.getElementById('map');
 const NS='http://www.w3.org/2000/svg';
+// Aspect de chaque terrain : variante de teinte, motif de remplissage, bâtiments (x, y, largeur, hauteur)
+const LOOK={clear:{alt:true},forest:{fill:'url(#trees)'},
+  town:{bld:[[-10,-5,5,4],[6,-3,5,5],[-7,6,6,4],[5,6,4,4]]},
+  city:{bld:[[-13,-6,6,5],[-6,-9,7,6],[3,-7,8,5],[-11,1,7,5],[-2,0,6,6],[6,1,7,5],[-4,8,9,4]]}};
 // Fond de carte : terrain, routes, rivières et ponts, bâtiments des villes
 export function drawStatic(map){
   svg.setAttribute('viewBox',`0 0 ${SVGW} ${SVGH}`);
   let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern><pattern id="ihatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(150,30,10,.55)" stroke-width="1.3"/></pattern></defs>`;
   s+=`<rect width="${SVGW}" height="${SVGH}" fill="#d9cfb2"/>`;
   s+='<g id="terrain">';
-  for(const k in map.hex){const h=map.hex[k];s+=`<polygon class="hx ${h.t}${h.alt&&h.t==='clear'?' alt':''}" points="${POLY[k]}" data-k="${k}"${h.t==='forest'?' fill="url(#trees)"':''}/>`;}
+  for(const k in map.hex){const h=map.hex[k],lk=LOOK[h.t];s+=`<polygon class="hx ${h.t}${h.alt&&lk.alt?' alt':''}" points="${POLY[k]}" data-k="${k}"${lk.fill?` fill="${lk.fill}"`:''}/>`;}
   s+='</g><g id="feat" pointer-events="none">';
   for(const ch of map.roadChains){const d='M'+ch.map(k=>ck(k).map(v=>v.toFixed(1)).join(',')).join('L');s+=`<path class="road-c" d="${d}"/>`;}
   for(const ch of map.roadChains){const d='M'+ch.map(k=>ck(k).map(v=>v.toFixed(1)).join(',')).join('L');s+=`<path class="road" d="${d}"/>`;}
   for(const e in map.rivers){const [a,b]=e.split('|');const [bx,by]=ck(b);const cs=corners(a).map(p=>[p,Math.hypot(p[0]-bx,p[1]-by)]).sort((x,y)=>x[1]-y[1]).slice(0,2).map(x=>x[0]);s+=`<line class="river" x1="${cs[0][0].toFixed(1)}" y1="${cs[0][1].toFixed(1)}" x2="${cs[1][0].toFixed(1)}" y2="${cs[1][1].toFixed(1)}"/>`;
     if(map.roads[e]){const mx=(cs[0][0]+cs[1][0])/2,my=(cs[0][1]+cs[1][1])/2;const [ax,ay]=ck(a);const ang=Math.atan2(by-ay,bx-ax)*180/Math.PI;s+=`<rect class="bridge" x="-5" y="-2.6" width="10" height="5.2" transform="translate(${mx.toFixed(1)},${my.toFixed(1)}) rotate(${ang.toFixed(1)})"/>`;}}
   for(const id in map.towns){const t=map.towns[id];const [x,y]=center(t.c,t.r);
-    const b=t.t==='city'?[[-13,-6,6,5],[-6,-9,7,6],[3,-7,8,5],[-11,1,7,5],[-2,0,6,6],[6,1,7,5],[-4,8,9,4]]:[[-10,-5,5,4],[6,-3,5,5],[-7,6,6,4],[5,6,4,4]];
-    for(const r of b)s+=`<rect class="bld" x="${(x+r[0]).toFixed(1)}" y="${(y+r[1]).toFixed(1)}" width="${r[2]}" height="${r[3]}"/>`;}
+    for(const r of LOOK[t.t].bld)s+=`<rect class="bld" x="${(x+r[0]).toFixed(1)}" y="${(y+r[1]).toFixed(1)}" width="${r[2]}" height="${r[3]}"/>`;}
   const [ox,oy]=center(13,10);s+=`<text class="rlabel" transform="translate(${(ox+HW*0.48).toFixed(0)},${(oy+R*0.9).toFixed(0)}) rotate(-72)">Our</text>`;
   const [cx2,cy2]=center(8,6);s+=`<text class="rlabel" transform="translate(${(cx2+HW*0.5).toFixed(0)},${(cy2+R*1.3).toFixed(0)}) rotate(-75)">Clerve</text>`;
   s+=`<text class="mlabel" x="${PAD+4}" y="${SVGH-PAD-2}">← Vers la Meuse</text><text class="mlabel" x="${SVGW-PAD-4}" y="${PAD+10}" text-anchor="end">Allemagne →</text>`;

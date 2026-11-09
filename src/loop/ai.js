@@ -1,4 +1,4 @@
-import { AI_ADVANCE_PAUSE, AI_COMBAT_GUARD, AI_DE_CAP_BASTOGNE, AI_DE_CAP_OTHER, AI_DE_VP_WEIGHT, AI_END_PHASE_DELAY, AI_MOVE_PAUSE, AI_RESULT_PAUSE, AI_TARGET_PAUSE, AI_US_SLOTS, PHASES, AI_US_COVER_BONUS, AI_ZOC_WEIGHT_DE, AI_ZOC_WEIGHT_US, AI_MOVE_MIN_GAIN, AI_PRUNE_FROM_COL, AI_PRUNE_KEEP_COL, AI_MIN_COL_DE_VP, AI_MIN_COL_DE, AI_MIN_COL_US_RETAKE, AI_MIN_COL_US, AI_COMBAT_COL_WEIGHT } from '../config.js';
+import { TERRAINS, AI_ADVANCE_PAUSE, AI_COMBAT_GUARD, AI_DE_CAP_BASTOGNE, AI_DE_CAP_OTHER, AI_DE_VP_WEIGHT, AI_END_PHASE_DELAY, AI_MOVE_PAUSE, AI_RESULT_PAUSE, AI_TARGET_PAUSE, AI_US_SLOTS, PHASES, AI_US_COVER_BONUS, AI_ZOC_WEIGHT_DE, AI_ZOC_WEIGHT_US, AI_MOVE_MIN_GAIN, AI_PRUNE_FROM_COL, AI_PRUNE_KEEP_COL, AI_MIN_COL_DE_VP, AI_MIN_COL_DE, AI_MIN_COL_US_RETAKE, AI_MIN_COL_US, AI_COMBAT_COL_WEIGHT } from '../config.js';
 import { neighbors } from '../rules/hex.js';
 import { townKey } from '../rules/map.js';
 import { isMech, onMap, other, vals } from '../rules/units.js';
@@ -52,7 +52,7 @@ async function aiMove(side){
   for(const u of order){
     if(!onMap(u)||u.mp<=0)continue;
     const g=goals.get(u.id),f=field(g,isMech(u)),rch=reach(u);
-    const score=(k,zoc)=>f.get(k)+(side==='us'&&hex[k].t!=='clear'?AI_US_COVER_BONUS:0)+(zoc?(side==='de'?AI_ZOC_WEIGHT_DE:AI_ZOC_WEIGHT_US):0);
+    const score=(k,zoc)=>f.get(k)+(side==='us'&&TERRAINS[hex[k].t].cover?AI_US_COVER_BONUS:0)+(zoc?(side==='de'?AI_ZOC_WEIGHT_DE:AI_ZOC_WEIGHT_US):0);
     let bestK=null,bs=score(u.pos,false)-AI_MOVE_MIN_GAIN;
     for(const [k,r] of rch){const s=score(k,r.zoc);if(s<bs){bs=s;bestK=k;}}
     if(bestK){await doMove(u,bestK,rch.get(bestK));await sleep(AI_MOVE_PAUSE);}

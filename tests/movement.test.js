@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { stepCost, reach } from '../src/rules/movement.js';
 import { buildMap } from '../src/rules/map.js';
-import { MAP_SEED } from '../src/config.js';
+import { MAP_SEED, TERRAINS } from '../src/config.js';
 
 const map = buildMap(MAP_SEED);
 
@@ -17,6 +17,13 @@ test('entrer en forêt coûte 2 PM à l\'infanterie et 3 aux blindés', () => {
 
 test('traverser une rivière hors pont ajoute 2 PM', () => {
   assert.equal(stepCost(map, '13,0', '14,0', false), 3);
+});
+
+test('le coût d\'un pas se lit dans la table des terrains', () => {
+  const before = TERRAINS.forest.cost.inf;
+  TERRAINS.forest.cost.inf = 5;
+  try { assert.equal(stepCost(map, '8,0', '9,0', false), 5); }
+  finally { TERRAINS.forest.cost.inf = before; }
 });
 
 const inf = (id, side, pos, mp, ma = 4) => ({ id, side, pos, mp, type: 'inf', v: [2, 3, ma], rv: [1, 2, ma], max: 2, steps: 2, oos: 0, dead: false });

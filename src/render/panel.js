@@ -1,4 +1,4 @@
-import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAIN, TURNS, OOS_ISOLATED } from '../config.js';
+import { ARRIVALS, COLL, CRT, PHASES, RES, SIDE, TERRAINS, TURNS, OOS_ISOLATED } from '../config.js';
 import { ek, neighbors } from '../rules/hex.js';
 import { atkOf, other, vals } from '../rules/units.js';
 import { esc, turnLabel } from './labels.js';
@@ -13,10 +13,12 @@ function unitMeta(u,ph){
   if(ph.kind==='combat'&&u.side===ph.side&&u.attacked)st.push('a déjà attaqué');
   return `<b>${esc(u.name)}</b><span>${esc(u.div)}${st.length?' · '+st.join(' · '):''}</span>`;
 }
+// Effet du terrain tel qu'il est expliqué au joueur, case par case
+const TERRAIN_NOTE={clear:'1 PM',forest:'2 PM (3 blindés), −1 en défense',town:'−1 en défense',city:'−2 en défense'};
 function hexBlock(k,ph){
   const map=store.state.map,h=map.hex[k],t=h.town?map.towns[h.town]:null,us=unitsAt(k);
   const rivers=neighbors(k).filter(n=>map.rivers[ek(k,n)]).length;
-  let s=`<div class="box"><span class="eyebrow">Hexagone ${k}</span><h3>${t?t.name:TERRAIN[h.t]}</h3><dl class="kv"><dt>Terrain</dt><dd>${TERRAIN[h.t]}${h.t==='forest'?' · 2 PM (3 blindés), −1 en défense':h.t==='town'?' · −1 en défense':h.t==='city'?' · −2 en défense':' · 1 PM'}</dd>`;
+  let s=`<div class="box"><span class="eyebrow">Hexagone ${k}</span><h3>${t?t.name:TERRAINS[h.t].label}</h3><dl class="kv"><dt>Terrain</dt><dd>${TERRAINS[h.t].label} · ${TERRAIN_NOTE[h.t]}</dd>`;
   if(rivers)s+=`<dt>Rivière</dt><dd>+2 PM pour la traverser hors pont</dd>`;
   const bd=['de','us'].find(sd=>bondsOf(sd).has(k));
   if(us.length){const su=(store.sel.unit&&U(store.sel.unit).pos===k)?U(store.sel.unit):us[0],p=supplyPath(su.side,su.pos);s+=`<dt>Ravitaillement</dt><dd>${p?`ligne de ${p.length-1} case${p.length>2?'s':''} jusqu'au bord ${su.side==='us'?'ouest':'est'}`:'aucune ligne, unité encerclée'}</dd>`;}
@@ -29,7 +31,7 @@ function hexBlock(k,ph){
 function combatBlock(ph){
   const k=store.sel.target,cands=eligibleAttackers(k,ph.side),atk=cands.filter(u=>store.sel.attackers.has(u.id));
   const defs=unitsAt(k).filter(u=>u.side!==ph.side),map=store.state.map,h=map.hex[k];
-  let s=`<div class="box"><span class="eyebrow">Attaque</span><h3>${h.town?map.towns[h.town].name:TERRAIN[h.t]}</h3><div class="units">`;
+  let s=`<div class="box"><span class="eyebrow">Attaque</span><h3>${h.town?map.towns[h.town].name:TERRAINS[h.t].label}</h3><div class="units">`;
   for(const d of defs)s+=`<div class="ucard" style="cursor:default">${counterIcon(d)}<span class="meta"><b>${esc(d.name)}</b><span>Défense ${vals(d)[1]}</span></span></div>`;
   s+='</div><p class="hint" style="margin:10px 0 6px">Unités qui participent :</p><div class="units">';
   for(const a of cands)s+=`<label class="chk"><input type="checkbox" data-act="toggle" data-id="${a.id}"${store.sel.attackers.has(a.id)?' checked':''}>${counterIcon(a)}<span class="meta" style="font-size:13px"><b style="font-family:var(--f-cond);font-size:16px;display:block">${esc(a.name)}</b><span style="color:var(--muted)">Attaque ${atkOf(a)}${a.oos?' (coupée)':''}${map.rivers[ek(a.pos,k)]?' · à travers la rivière':''}</span></span></label>`;

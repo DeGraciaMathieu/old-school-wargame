@@ -16,7 +16,7 @@ auto_invoke: true
 | Défense | `vals(u)[1]` | Pas de malus de ravitaillement en défense |
 | Rapport brut | `odds(...)`.col | Plus haut `i` tel que `A >= TH[i]*D` (arrondi en faveur du défenseur) ; `-1` sous 1:2 |
 | Libellés de colonne | `COLL` — `config.js` | `'1:2'` … `'6:1'` (8 colonnes) |
-| Décalages | `odds(...)`.shifts | `SHIFT_FOREST`, `SHIFT_TOWN`, `SHIFT_CITY`, `SHIFT_RIVER` (toutes les unités attaquent à travers une rivière), `SHIFT_ARMOR_CLEAR` (blindés `arm` contre défenseurs sans `arm`/`td`, en dégagé) |
+| Décalages | `odds(...)`.shifts | `TERRAINS[t].shift` (libellé `shiftLabel`), `SHIFT_RIVER` (toutes les unités attaquent à travers une rivière), `TERRAINS[t].armorShift` (blindés `arm` contre défenseurs sans `arm`/`td`, en dégagé) |
 | Colonne finale | `odds(...)`.fin | `col + Σ décalages`, bornée à `[0, CRT.length-1]`, ou `-1` |
 | Table des résultats | `CRT[col][die-1]`, `RES[code]` — `config.js` | Codes `A1`, `NE`, `EX`, `D1`, `D2`, `DL`, `DL2`, `DE` |
 | Jet de dé | `1+Math.floor(rng()*DIE_SIDES)` dans `resolveCombat` | `rng` injecté (`diceRng` de `loop/orders.js`, réglé par `useDice` dans `main.js`) |
