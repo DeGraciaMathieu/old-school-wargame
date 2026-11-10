@@ -11,7 +11,7 @@ import * as turn from '../rules/turn.js';
 import * as victory from '../rules/victory.js';
 
 // État de la partie et état d'interface partagés entre les couches
-export const store={state:null,busy:false,undo:[],sel:{},zoom:1,scoreOpen:false};
+export const store={state:null,busy:false,undo:[],sel:{},zoom:1,scoreOpen:false,hall:{seeds:[],pick:0}};
 export const isAI=s=>!!store.state&&store.state.mode==='ai-'+s;
 // Phase en cours : camp actif, mouvement ou combats, libellé
 export const curPhase=()=>turn.phaseOf(store.state);

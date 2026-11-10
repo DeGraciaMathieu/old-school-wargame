@@ -6,14 +6,21 @@ import { captureEffects, diceRng } from './orders.js';
 import { AUDIO } from '../render/audio.js';
 import { render } from '../render/index.js';
 import { drawStatic, fx } from '../render/map.js';
-import { closeModal, modeButtons, openModal } from '../render/sheets.js';
+import { closeHall, closeModal, modeButtons, openModal, startScreen } from '../render/sheets.js';
 import { createGame, curPhase, isAI, save, store, vpOf } from '../state/store.js';
 
 /* ---------- Déroulement : partie, phases, fin de partie ---------- */
-// Partie neuve sur une carte dont la graine est tirée au dé injecté
-export function newGame(mode){
-  store.state=createGame(mode,1+Math.floor(diceRng()*SEED_MAX));drawStatic(store.state.map);
-  store.undo=[];store.sel={};closeModal();startPhase();
+// Graine de carte tirée au dé injecté
+const drawSeed=()=>1+Math.floor(diceRng()*SEED_MAX);
+// Salle des cartes : trois graines neuves si on le demande ou s'il n'y en a pas encore
+export function openHall(reroll){
+  if(reroll||!store.hall.seeds.length)store.hall={seeds:[drawSeed(),drawSeed(),drawSeed()],pick:0};
+  startScreen();
+}
+// Partie neuve sur la carte choisie, ou sur une carte tirée au dé
+export function newGame(mode,seed=drawSeed()){
+  store.state=createGame(mode,seed);drawStatic(store.state.map,store.state.seed);
+  store.hall.seeds=[];store.undo=[];store.sel={};closeModal();closeHall();startPhase();
 }
 function startPhase(){
   const ph=curPhase();

@@ -212,6 +212,21 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
 - Rivière franchie hors pont : le mouvement s'arrête sur l'autre rive (`reach` renvoie `stop`, que `doMove` lit pour
   mettre `mp` à 0, comme l'entrée en ZOC). Le +2 PM reste. Une case atteinte à la fois avec et sans franchissement
   garde le chemin sans franchissement.
+- Refonte visuelle (rendu seulement, règles inchangées) : terrain en masses (forêts cernées, montagnes en courbes de
+  niveau avec ombre portée, grille fine par-dessus), rivières et routes lissées (`riverPaths`, `smooth`), pions
+  cartonnés avec badge de pile, cadre gradué aux coordonnées des clés `'c,r'` (`FRAME`), cartouche sous la carte avec
+  le nom de la contrée (`REGION_PATTERNS`, tiré par `seed % longueur`) et le numéro de carte (`CARTOUCHE_H`), grain
+  et vignette, piste des tours en réglette, jauge de rapport de force. `drawStatic` reçoit la graine.
+  - La jauge compte comme favorables les faces où seul le défenseur est touché (résultats `D…`) ; `EX` n'en fait pas
+    partie.
+  - Deux rivières peuvent partager une arête (`map.rivers` ne garde qu'un nom) : le tracé enchaîne toutes les arêtes
+    de rivière, sans distinguer les noms.
+- **Salle des cartes** : l'écran d'accueil n'est plus une fenêtre mais un écran plein (`#hall`, `startScreen`) qui
+  recouvre le plateau. Trois cartes tirées au dé injecté (`openHall`, `store.hall`) y sont montrées en vignettes
+  (`miniMap`) avec le nom de la contrée, le numéro, et le nombre de massifs, de rivières et de villes. On peut en tirer
+  trois autres ou saisir un numéro (de 1 à `SEED_MAX`) : il remplace la carte sélectionnée. Le choix du camp lance la
+  partie sur la carte sélectionnée. « Nouvelle partie », en jeu, ramène à la salle avec trois nouvelles cartes.
+  `main.js` ne dessine plus de carte au hasard derrière l'écran de départ.
 
 ## Questions ouvertes de Terra Incognita
 
@@ -220,4 +235,9 @@ Base du nouveau jeu, à partir de `main`. Spécifications : `docs/prd/extraction
   Bleus, elle se confond avec la couleur des Rouges. À garder ou à changer ?
 - **Équilibre** : valeurs de départ (ordre de bataille, PV, `VP_WIN_MARGIN`, nombre de rivières, poids de l'IA) à
   régler par des parties d'essai.
+- **Échelle de la carte** : le cartouche n'a pas d'échelle, faute de distance définie pour un hexagone. À fixer ?
+- **Rivières superposées** : le générateur peut tracer deux rivières presque confondues, qui enferment des cases
+  entre elles (carte n° 4127). À garder ou à écarter ?
 - **Son** : l'ambiance (barrage d'aube, convoi) reste celle du Saillant.
+- **Fin de partie** : les boutons de camp de la fenêtre de fin lancent toujours une partie sur une carte tirée au
+  hasard, sans passer par la salle des cartes. Les y renvoyer ?

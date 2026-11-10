@@ -1,5 +1,7 @@
 /* ---------- Géométrie : hexagones pointe en haut, lignes impaires décalées ---------- */
 export const R=28, COLS=16, ROWS=12, PAD=10;
+// Cadre gradué autour de la carte (coordonnées des cases) et bandeau du cartouche sous la carte, en pixels du SVG
+export const FRAME=16, CARTOUCHE_H=50;
 
 /* ---------- Carte ---------- */
 export const FOREST_PROB=0.4;
@@ -30,6 +32,8 @@ export const RIVER_NAMES=['Sarne','Lisance','Orvane','Mézère','Ardoise','Vaudr
 export const TOWN_LAYOUT={side:[{t:'town',vp:2},{t:'town',vp:1},{t:'town',vp:0}],center:[{t:'city',vp:3},{t:'town',vp:1},{t:'town',vp:1}]};
 // Écart minimal entre deux villes, tirages avant d'abandonner, villes reliées à leur bord par une route
 export const TOWN_MIN_DIST=3, TOWN_TRIES=50, EXITS_PER_SIDE=2;
+// Nom de la contrée affiché dans le cartouche : modèle tiré par la graine, {r} = première rivière, {t} = première ville du centre
+export const REGION_PATTERNS=['Val de {r}','Marches de {t}','Pays de {t}','Plateau de {t}','Haute-{r}','Coteaux de {r}'];
 export const TOWN_NAMES=['Valbrune','Hautrive','Morlanne','Brévannes','Ostrand','Kellmarch','Lorvic','Sarnac','Vescourt','Altheim','Dornay','Roquelin','Faverge','Grisbach','Montaval','Tiercelin'];
 
 /* ---------- Mouvement ---------- */

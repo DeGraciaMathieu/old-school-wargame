@@ -68,7 +68,8 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
   Une unité porte `id, side, name, div, type, v, rv, max, steps, pos, arrived, mp, attacked,
   dead, oos` (+ `turn`, `entry` pour les renforts).
 - L'état d'interface vit à côté : `store.busy`, `store.undo`, `store.sel`, `store.zoom`,
-  `store.scoreOpen` (badge de PV déplié).
+  `store.scoreOpen` (badge de PV déplié),
+  `store.hall` (salle des cartes : `{seeds, pick}`).
 - Côté `loop/`, après une transition : `store.state = r.state`, puis effets (son, FX,
   `render()`, `save()`). Les objets unité changent d'identité à chaque transition : référencer
   les unités par `id` (`U(id)`), jamais par un objet gardé d'une phase à l'autre.

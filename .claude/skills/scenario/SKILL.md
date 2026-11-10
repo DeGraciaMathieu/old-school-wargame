@@ -28,11 +28,11 @@ auto_invoke: true
 | Contrôle des villes | `state.control` ; initial : `sideOfBand(band)` — `src/rules/deploy.js` | Bandes latérales au camp de ce bord, centre neutre (`null`, classe CSS `neutral`) ; le dernier camp entré dans une ville libre la contrôle (`townTakenBy`) |
 | PV et verdict | `vpOf`, `outcome(blue,red)` — `src/rules/victory.js` | Ville neutre : aucun PV ; écart d'au moins `VP_WIN_MARGIN` pour gagner, sinon nul |
 | Modes | `state.mode` : `'ai-red'` (joueur bleu), `'ai-blue'` (joueur rouge), `'hotseat'` ; `isAI(side)` — `src/state/store.js` | Boutons de `modeButtons` (`src/render/sheets.js`) |
-| Nouvelle partie | `newGame(mode)` — `src/loop/turn.js` → `createGame(mode,seed)` — `src/state/store.js` | Graine tirée au dé injecté (`diceRng`) ; `drawStatic(map)` ; `fieldCache` vidé dans `input/controls.js` |
+| Nouvelle partie | Salle des cartes `openHall` / `startScreen`, puis `newGame(mode,seed)` — `src/loop/turn.js` → `createGame(mode,seed)` — `src/state/store.js` | Trois graines tirées au dé injecté (`diceRng`) dans `store.hall`, ou saisies par le joueur ; sans graine (fin de partie), `newGame` en tire une ; `drawStatic(map,seed)` ; `fieldCache` vidé dans `input/controls.js` |
 | Fin de partie | `endGame()` — `src/loop/turn.js` | Après la dernière phase du tour `TURNS` |
 | Sauvegarde | `save()` / `loadSaved()` — `src/state/store.js`, clé `SAVE_KEY` | État brut en JSON, carte comprise ; refusée sans `seed` ou si terminée ; reprise : `drawStatic` et `fieldCache` vidé |
 | Journal | `state.log` (au plus `LOG_MAX`), `pushLog` — `src/rules/journal.js` | `{t,text,side}`, entrées en tête |
-| Affichage | `drawStatic(map)` (au chargement sur une carte quelconque, puis à chaque partie) et `renderMap` — `src/render/map.js` ; `renderTrack`, `renderScore` (badge Bleus–Rouges dépliable : barre, écart de victoire, villes à PV ; ouvert si `store.scoreOpen`) — `src/render/hud.js` ; `renderPanel` (numéro de carte) | — |
+| Affichage | `drawStatic(map,seed)` (au chargement sur une carte quelconque, puis à chaque partie) et `renderMap` — `src/render/map.js` ; `renderTrack`, `renderScore` (badge Bleus–Rouges dépliable : barre, écart de victoire, villes à PV ; ouvert si `store.scoreOpen`) — `src/render/hud.js` ; `renderPanel` (numéro de carte) | — |
 
 ## Modifier l'ordre de bataille ou les renforts
 

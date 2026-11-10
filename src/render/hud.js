@@ -5,7 +5,9 @@ import { U, curPhase, eligibleAttackers, isAI, odds, store, vpOf } from '../stat
 
 /* ---------- Piste des tours, score, barre d'action mobile ---------- */
 export function renderTrack(){
-  let s='';for(let t=1;t<=TURNS;t++){const a=store.state.arrivals.filter(x=>x.turn===t);s+=`<div class="tcell${t<store.state.turn?' past':''}${t===store.state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+SIDE[x.side].toLowerCase()+' : '+x.text).join('')}"><b>J${dayOf(t)}</b>${t%TURNS_PER_DAY?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">${SIDE[x.side][0]}</span>`).join('')}</span>`:''}</div>`;}
+  // Réglette : un demi-jour par case, après-midi teintés, renforts comptés sous leur tour
+  const nb=(sd,t)=>store.state.units.filter(u=>u.side===sd&&u.turn===t).length;
+  let s='';for(let t=1;t<=TURNS;t++){const a=store.state.arrivals.filter(x=>x.turn===t);s+=`<div class="tcell${t%TURNS_PER_DAY?'':' pm'}${t<store.state.turn?' past':''}${t===store.state.turn?' now':''}" title="${turnLabel(t)}${a.map(x=>' · Renforts '+SIDE[x.side].toLowerCase()+' : '+x.text).join('')}"><b>J${dayOf(t)}</b>${t%TURNS_PER_DAY?'matin':'a.-midi'}${a.length?`<span class="rfs">${a.map(x=>`<span class="rf ${x.side}">+${nb(x.side,t)}</span>`).join('')}</span>`:''}</div>`;}
   document.getElementById('track').innerHTML=s;
 }
 export const scoreEl=document.getElementById('mapscore');

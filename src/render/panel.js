@@ -43,7 +43,11 @@ function combatBlock(ph){
   s+=`<div class="odds"><span class="big">${o.fin<0?'—':COLL[o.fin]}</span><span class="hint" style="margin:0">${o.A} contre ${o.D}${o.col>=0&&o.fin!==o.col?` · rapport brut ${COLL[o.col]}`:''}</span></div>`;
   if(o.shifts.length)s+='<ul class="shifts">'+o.shifts.map(x=>`<li><span>${x[0]}</span><span>${x[1]>0?'+':'−'}${Math.abs(x[1])}</span></li>`).join('')+'</ul>';
   if(o.fin<0)return s+'<p class="hint">Rapport inférieur à 1:2 : attaque impossible.</p><div class="btns"><button class="btn ghost" type="button" data-act="cancel">Annuler</button></div></div>';
+  // Jauge : colonnes de la CRT, rapport brut cerclé, colonne finale surlignée ; faces où seul le défenseur est touché
+  s+='<div class="gauge">'+COLL.map((c,i)=>`<div class="${i===o.fin?'fin':i===o.col?'raw':''}">${c}</div>`).join('')+'</div>';
   s+='<div class="crtrow">'+CRT[o.fin].map((c,i)=>`<div class="r ${c}"><small>${i+1}</small>${c}</div>`).join('')+'</div>';
+  const good=CRT[o.fin].filter(c=>c[0]==='D').length;
+  s+=`<p class="hint" style="margin:-4px 0 10px">Le défenseur seul est touché sur ${good} face${good>1?'s':''} sur ${CRT[o.fin].length}.</p>`;
   return s+`<div class="btns"><button class="btn red" type="button" data-act="attack">Lancer le dé</button><button class="btn ghost" type="button" data-act="cancel">Annuler</button></div></div>`;
 }
 function resultBlock(ph){

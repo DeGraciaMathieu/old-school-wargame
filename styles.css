@@ -17,13 +17,16 @@ button{font:inherit;color:inherit}
 .bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;justify-content:space-between}
 .brand h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1;margin:0;letter-spacing:.04em;text-wrap:balance}
 .brand p{margin:4px 0 0;color:var(--muted);font-family:var(--f-cond);font-size:15px;letter-spacing:.04em}
-.track{display:flex;gap:3px;flex-wrap:wrap}
-.tcell{min-width:46px;padding:4px 6px;border:1px solid var(--line);background:var(--panel);font-family:var(--f-cond);font-size:12px;line-height:1.15;text-align:center;color:var(--muted);position:relative}
-.tcell b{display:block;font-size:14px;color:var(--ink);font-weight:600}
-.tcell.past{opacity:.45}
-.tcell.now{border-color:var(--amber);background:#3a3221;color:var(--ink)}
-.tcell .rfs{position:absolute;top:-7px;right:-4px;display:flex;gap:2px}
-.tcell .rf{font-size:9px;font-weight:700;padding:0 3px;border-radius:2px;color:#171a0e;line-height:1.3}
+/* Piste des tours en réglette de papier */
+.track{display:flex;flex-wrap:wrap;border:1px solid #9c9273;background:var(--paper);box-shadow:0 2px 0 #9c9273;margin-bottom:8px}
+.tcell{min-width:46px;padding:4px 6px 8px;border-left:1px solid rgba(46,38,26,.3);background:var(--paper);font-family:var(--f-cond);font-size:12px;line-height:1.15;text-align:center;color:#6b5d40;position:relative}
+.tcell:first-child{border-left:0}
+.tcell.pm{background:#ddd2b4;border-right:1px solid rgba(46,38,26,.6)}
+.tcell b{display:block;font-size:14px;color:#2e261a;font-weight:700}
+.tcell.past{opacity:.5}
+.tcell.now{background:var(--amber);color:#1b1505}
+.tcell .rfs{position:absolute;bottom:-9px;left:0;right:0;display:flex;justify-content:center;gap:2px}
+.tcell .rf{font-size:10px;font-weight:700;padding:0 3px;border-radius:2px;color:#171a0e;line-height:1.3}
 .rf.blue{background:var(--bleu)} .rf.red{background:var(--rouge)}
 .tools{display:flex;gap:6px;flex-wrap:wrap}
 
@@ -67,6 +70,10 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .odds .big{font-family:var(--f-display);font-size:34px;line-height:1;color:var(--amber)}
 .shifts{margin:0 0 8px;padding:0;list-style:none;font-size:13px;color:var(--muted)}
 .shifts li{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:2px 0}
+.gauge{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin:6px 0 4px;font-family:var(--f-cond);font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
+.gauge div{padding:3px 0;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.gauge .raw{border-color:var(--ink);color:var(--ink)}
+.gauge .fin{background:var(--amber);border-color:var(--amber);color:#1b1505;font-weight:700}
 .crtrow{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin:6px 0 10px;font-family:var(--f-cond);font-size:13px;text-align:center}
 .crtrow div{background:var(--panel2);padding:3px 0;border:1px solid var(--line)}
 .crtrow div small{display:block;color:inherit;opacity:.7;font-size:11px;font-weight:500}
@@ -91,12 +98,33 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .reinf{font-size:13px;color:var(--muted);margin:0;padding-left:18px}
 
 /* Carte SVG */
-.hx{stroke:#8d7d5a;stroke-width:.7;stroke-opacity:.55}
-.hx.clear{fill:#e9e0c6} .hx.clear.alt{fill:#e5dbbf} .hx.town,.hx.city{fill:#e3d6b6}
-.river{stroke:#4d7ea6;stroke-width:4.2;stroke-linecap:round;fill:none}
-.road-c{stroke:#5a2a1c;stroke-width:4.4;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
-.road{stroke:#c2603f;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.bridge{fill:#3b2f22}
+/* Terrain en masses : cases sans contour (trait de la couleur du fond pour éviter les joints), grille fine par-dessus */
+.hx{stroke-width:.8}
+.hx.clear{fill:#e9e0c6;stroke:#e9e0c6} .hx.clear.alt{fill:#e5dbbf;stroke:#e5dbbf} .hx.town,.hx.city{fill:#e3d6b6;stroke:#e3d6b6}
+.hx.mountain{fill:#d4c7a6;stroke:#d4c7a6}
+.relief-shadow{fill:#5d4c34;opacity:.16}
+.contour{fill:none;stroke:#8b7656;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.contour-fill{fill:none;stroke:#d4c7a6;stroke-linecap:round;stroke-linejoin:round}
+.contour.edge{stroke-width:2.8;opacity:1}
+.forest-edge{fill:none;stroke:#5f7448;stroke-width:1.6;stroke-linecap:round}
+.grid{fill:none;stroke:#8d7d5a;stroke-width:.5;stroke-opacity:.3}
+/* Cadre gradué, cartouche, lumière */
+.frame{fill:none;stroke:#2e261a;stroke-width:1}
+.frame-in{fill:none;stroke:#2e261a;stroke-width:.5}
+.coord{font-family:var(--f-cond);font-size:8px;font-weight:600;fill:#6b5d40;text-anchor:middle;font-variant-numeric:tabular-nums}
+.cart-bg{fill:#cfc4a5}
+.cart rect{fill:#efe6cc;stroke:#2e261a;stroke-width:1} .cart rect.in{fill:none;stroke-width:.5}
+.cname{font-family:var(--f-display);font-size:15px;fill:#2e261a;text-anchor:middle;letter-spacing:.04em}
+.cnum{font-family:var(--f-cond);font-size:9px;font-weight:600;fill:#6b5d40;text-anchor:middle;letter-spacing:.14em}
+.rose-n{fill:#2e261a} .rose-e{fill:#6b5d40}
+.rose-t{font-family:var(--f-cond);font-size:7px;font-weight:700;fill:#2e261a;text-anchor:middle}
+.grain{fill:#000;pointer-events:none}
+/* Rivières et routes tracées à la main */
+.river-b{stroke:#3b6a92;stroke-width:5.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.river{stroke:#6d9cc4;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.road-c{stroke:#f4ecd6;stroke-width:5.8;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.road{stroke:#a9502f;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.bridge rect{fill:#efe6cc;stroke:#3b2f22;stroke-width:1} .bridge line{stroke:#3b2f22;stroke-width:1.8}
 .bld{fill:#3b342a}
 .tlabel{font-family:var(--f-cond);font-weight:700;font-size:7.6px;letter-spacing:.06em;text-anchor:middle;fill:#2e261a;paint-order:stroke;stroke:#e8dfc5;stroke-width:2.2px;text-transform:uppercase}
 .rlabel{font-family:var(--f-cond);font-style:italic;font-weight:600;font-size:10px;fill:#3d6c93;letter-spacing:.08em}
@@ -113,15 +141,50 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .hl-atk{fill:rgba(227,169,61,.18);stroke:#c4861c;stroke-width:2.5}
 @keyframes dash{to{stroke-dashoffset:-16}}
 .ctr{cursor:pointer}
-.ctr.spent{opacity:.55}
+.ctr.spent{filter:saturate(.2) brightness(.82)}
+/* Pions cartonnés */
+.csh{fill:rgba(27,21,5,.45)}
 .cbg.red{fill:#c9968a} .cbg.blue{fill:#8fa6c4}
-.cbg{stroke:rgba(0,0,0,.6);stroke-width:1}
+.cbg{stroke:#f4ecd6;stroke-width:.9}
 .ctr.on .cbg{stroke:#e3a93d;stroke-width:2.6}
-.cn{font-family:var(--f-cond);font-weight:600;font-size:6.3px;text-anchor:middle;fill:#151a12}
-.cv{font-family:var(--f-cond);font-weight:700;font-size:10.5px;text-anchor:middle;fill:#151a12;letter-spacing:.02em}
+.cband.blue{fill:#4f6a8f} .cband.red{fill:#8f5547}
+.cn{font-family:var(--f-cond);font-weight:700;font-size:6px;text-anchor:middle;fill:#f4ecd6;letter-spacing:.06em;text-transform:uppercase}
+.cv{font-family:var(--f-display);font-weight:700;font-size:10px;text-anchor:middle;fill:#151a12;letter-spacing:.02em}
+.stk rect{fill:#2e261a;stroke:#f4ecd6;stroke-width:.6} .stk text{font-family:var(--f-cond);font-weight:700;font-size:7px;fill:#f4ecd6;text-anchor:middle}
 .fx{font-family:var(--f-display);font-size:15px;text-anchor:middle;fill:#1b1505;paint-order:stroke;stroke:#e3a93d;stroke-width:3px;animation:fx 1.6s ease-out forwards;pointer-events:none}
 .fx.bad{stroke:#f0a08c}
 @keyframes fx{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+
+/* Salle des cartes : écran d'accueil qui recouvre le plateau */
+.hall{position:fixed;inset:0;z-index:15;background:var(--table);overflow:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(28px,env(safe-area-inset-top,0px)) max(32px,env(safe-area-inset-bottom,0px))}
+.hall[hidden]{display:none}
+.hall-in{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.hall-hd{display:flex;flex-direction:column;gap:8px;max-width:68ch}
+.hall-hd h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,6vw,56px);line-height:1;margin:0;letter-spacing:.04em}
+.hall-hd p{margin:0;color:var(--muted)}
+.hall h2{font-family:var(--f-display);font-size:24px;margin:0;letter-spacing:.03em;text-wrap:balance}
+.btn.resume{align-self:flex-start;text-align:left;margin-top:6px;padding:10px 14px}
+.btn small{display:block;font-family:var(--f-body);font-weight:400;text-transform:none;letter-spacing:0;font-size:13px;opacity:.85}
+.hall-maps,.hall-modes{display:flex;flex-direction:column;gap:14px}
+.hall-bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
+.hall-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seedf{display:flex;align-items:center;gap:6px}
+.seedf label{font-family:var(--f-cond);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seedf input{width:9ch;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-family:var(--f-cond);font-size:16px;padding:6px 8px;font-variant-numeric:tabular-nums}
+.seedf input:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.mcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.mcards{grid-template-columns:1fr}}
+.mcard{display:flex;flex-direction:column;padding:0;text-align:left;background:var(--panel);border:1px solid var(--line);cursor:pointer;min-width:0}
+.mcard:hover{border-color:var(--muted)}
+.mcard.sel{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+.mcard:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.mcard .mini{display:block;width:100%;aspect-ratio:16/10;height:auto}
+.mini .hx{stroke:rgba(46,38,26,.12);stroke-width:1}
+.mini .hx.clear,.mini .hx.town,.mini .hx.city{fill:#e9e0c6} .mini .hx.forest{fill:#a9b787} .mini .hx.mountain{fill:#b9a582}
+.mcard .cap{display:flex;flex-direction:column;gap:2px;padding:10px 12px;font-family:var(--f-cond);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mcard .cap b{font-size:17px;color:var(--ink);letter-spacing:.02em}
+.hall .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.hall .choices .btn{text-align:left;padding:12px 14px}
 
 /* Fenêtres */
 .modal{position:fixed;inset:0;background:rgba(10,12,10,.78);display:grid;place-items:center;z-index:20;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
@@ -131,7 +194,6 @@ h3{font-family:var(--f-cond);font-weight:700;font-size:18px;letter-spacing:.03em
 .sheet p{margin:0 0 12px;color:var(--muted);max-width:65ch}
 .sheet .choices{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .sheet .choices .btn{text-align:left;padding:12px 14px}
-.sheet .choices .btn small{display:block;font-family:var(--f-body);font-weight:400;text-transform:none;letter-spacing:0;font-size:13px;opacity:.85}
 .rules h3{margin-top:16px}
 .rules ul{margin:0;padding-left:18px;color:var(--ink);font-size:14px}
 .rules li{margin-bottom:4px}

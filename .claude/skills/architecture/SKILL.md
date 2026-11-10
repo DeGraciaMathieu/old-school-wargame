@@ -29,21 +29,21 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/rules/turn.js` | `phaseOf`, `beginPhase`, `nextPhase`, `freeHexNear` | supply, control, occupation |
 | `src/rules/rng.js` | `createRng(seed)` (carte d'une partie, tests) | — |
 | `src/state/store.js` | `store` `{state, busy, undo, sel, zoom, scoreOpen}`, `isAI`, `curPhase`, `U`, enveloppes de requêtes, `log`, `save`, `loadSaved`, `createGame(mode,seed)` | rules |
-| `src/render/geometry.js` | `SVGW`, `SVGH`, `center`, `ck`, `corners`, `POLY` (toute la grille) | hex |
+| `src/render/geometry.js` | `M` (marge avec cadre), `MAPW`, `MAPH` (carte), `SVGW`, `SVGH` (carte + cartouche), `center`, `ck`, `corners`, `POLY` (toute la grille) | hex |
 | `src/render/labels.js` | `dayOf`, `turnLabel`, `goodFor`, `esc` | config |
-| `src/render/map.js` | `drawStatic`, `renderMap`, `counter`, `counterIcon`, `fx`, `impact`, `animatePath`, `applyZoom`, `LIVE_CUT`, `pocketsSvg` | geometry, store |
+| `src/render/map.js` | `drawStatic(map,seed)` (terrain en masses, cadre gradué, rivières et routes lissées, cartouche, lumière), `miniMap(map)` (vignette de la salle des cartes), `regionName`, `renderMap`, `counter`, `counterIcon`, `fx`, `impact`, `animatePath`, `applyZoom`, `LIVE_CUT`, `pocketsSvg` | geometry, store |
 | `src/render/panel.js` | `renderPanel`, `hexBlock`, `combatBlock`, `resultBlock`, `unitMeta` | map, store |
 | `src/render/hud.js` | `renderTrack`, `renderScore` (badge de PV Bleus–Rouges dépliable), `renderAct`, `pulseScore`, `scoreEl` | store |
-| `src/render/sheets.js` | `openModal`, `closeModal`, `modeButtons`, `startScreen`, `rulesScreen` | store |
+| `src/render/sheets.js` | `openModal`, `closeModal`, `modeButtons`, `startScreen` (salle des cartes, écran plein `#hall`), `closeHall`, `rulesScreen` | rules/mapgen, map, store |
 | `src/render/index.js` | `render()` : piste, carte, score, barre d'action, panneau | render/* |
 | `src/render/audio.js` | `AUDIO` (Web Audio synthétisé, préférences dans `localStorage`) | store (lecture de la phase) |
 | `src/input/map.js` | `onHex` + écouteur de clic sur le SVG | loop/orders, store |
 | `src/input/actions.js` | `onAction` (`data-act` : end, undo, unit, toggle, attack, advance, cancel), `confirmEndCombat` | loop, render/sheets |
 | `src/input/controls.js` | Dépliage du badge de PV (`store.scoreOpen`), fenêtres (`data-mode`, `data-resume`, `data-rules`, `data-end-confirm`, `data-close`), Échap, zoom, son, `syncSound` | loop, render |
-| `src/loop/turn.js` | `newGame`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
+| `src/loop/turn.js` | `openHall(reroll)` (tire les trois graines), `newGame(mode,seed)`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
 | `src/loop/orders.js` | `useDice`, `doMove`, `undoMove`, `selectUnit`, `placeUnit`, `resolve`, `advance`, `captureEffects` | rules/combat, render, store |
 | `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat` (même logique pour les deux camps), `field` (Dijkstra mis en cache dans `fieldCache`, vidé à chaque partie et reprise) | orders, turn, store |
-| `src/main.js` | `useDice(Math.random)`, `drawStatic` d'une carte générée au hasard, zoom initial, `startScreen`, import des modules `input/` | tout |
+| `src/main.js` | `useDice(Math.random)`, zoom initial, `openHall`, import des modules `input/` | tout |
 
 ## Flux d'une action
 
