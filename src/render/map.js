@@ -61,7 +61,7 @@ function cartouche(map,seed){
 // Fond de carte : terrain, cadre gradué, routes, rivières et ponts, bâtiments des villes, cartouche, lumière
 export function drawStatic(map,seed){
   svg.setAttribute('viewBox',`0 0 ${SVGW} ${SVGH}`);
-  let s=`<defs><pattern id="trees" width="11" height="9.5" patternUnits="userSpaceOnUse"><rect width="11" height="9.5" fill="#bdc79c"/><circle cx="3" cy="3" r="1.8" fill="#7f9562"/><circle cx="8.5" cy="7.2" r="1.6" fill="#889b6b"/><circle cx="8.6" cy="2" r=".9" fill="#97a878"/></pattern><pattern id="ihatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(150,30,10,.55)" stroke-width="1.3"/></pattern>`;
+  let s=`<defs>`;
   const mts=new Set(Object.keys(map.hex).filter(k=>map.hex[k].t==='mountain')),forest=new Set(Object.keys(map.hex).filter(k=>map.hex[k].t==='forest'));
   s+=`<clipPath id="mclip">${[...mts].map(k=>`<polygon points="${POLY[k]}"/>`).join('')}</clipPath>`;
   s+=`<radialGradient id="vignette" cx="42%" cy="40%" r="75%"><stop offset="60%" stop-color="#1b1505" stop-opacity="0"/><stop offset="100%" stop-color="#1b1505" stop-opacity=".32"/></radialGradient><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="1" seed="7"/><feColorMatrix values="0 0 0 0 .3 0 0 0 0 .24 0 0 0 0 .14 0 0 0 .16 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>`;
@@ -140,7 +140,7 @@ function symbol(type){
   }
   return box;
 }
-function counter(u){
+export function counter(u,live=LIVE_CUT.has(u.id)){
   const [a,d,m]=vals(u);
   // Pion cartonné : ombre, fond au liseré clair, bande du camp portant le nom, symbole, valeurs
   return `<rect class="csh" x="-16" y="-16" width="34" height="34" rx="3"/><rect class="cbg ${u.side}" x="-17" y="-17" width="34" height="34" rx="3"/>`+
@@ -148,8 +148,8 @@ function counter(u){
     (u.steps<u.max?'<path d="M6,-16.5H13.5Q16.5,-16.5 16.5,-13.5V-6Z" fill="#b8402c"/>':'')+
     `<text class="cn" x="0" y="-10.8">${esc(u.name)}</text><g transform="translate(0,1.5)">${symbol(u.type)}</g><text class="cv" x="0" y="14.6">${a}-${d}-${m}</text>`+
     ((u.oos||0)>=OOS_ISOLATED?'<rect class="ihatch" x="-17" y="-17" width="34" height="34" rx="3"/>':'')+
-    ((u.oos||0)>=OOS_CUT?`<g class="mk ${u.oos>=OOS_ISOLATED?'iso':'cut'}${LIVE_CUT.has(u.id)?'':' back'}"><circle cx="-15" cy="-15" r="6.5"/><text x="-15" y="-11.6">${u.oos>=OOS_ISOLATED?'×':'!'}</text></g>`
-      :LIVE_CUT.has(u.id)?'<g class="mk pre"><circle cx="-15" cy="-15" r="6.5"/><text x="-15" y="-11.6">!</text></g>':'');
+    ((u.oos||0)>=OOS_CUT?`<g class="mk ${u.oos>=OOS_ISOLATED?'iso':'cut'}${live?'':' back'}"><circle cx="-15" cy="-15" r="6.5"/><text x="-15" y="-11.6">${u.oos>=OOS_ISOLATED?'×':'!'}</text></g>`
+      :live?'<g class="mk pre"><circle cx="-15" cy="-15" r="6.5"/><text x="-15" y="-11.6">!</text></g>':'');
 }
 export const counterIcon=u=>`<svg viewBox="-18 -18 36 36" width="40" height="40" aria-hidden="true">${counter(u)}</svg>`;
 export function renderMap(){

@@ -95,12 +95,15 @@ Il n'y a ni linter ni formateur. N'en ajoutez pas sans qu'on le demande.
   dans `styles.css`. Pas de thème clair. Couleurs des camps : `--bleu` et `--rouge` (`--red` sert
   aux alertes) ; classes `.blue`, `.red` et `.neutral`.
 - Les textes de règles affichés au joueur sont écrits à la main dans `render/sheets.js`
-  (`rulesScreen`, `startScreen`), `render/panel.js` (`hexBlock`, `TERRAIN_NOTE`), `render/hud.js` (légende des PV
+  (`rulesScreen`, écran plein `#rules`, et `startScreen`), les scènes animées de `render/scenes.js` (situations
+  scriptées case par case, chiffres tirés de `config.js`), `render/panel.js` (`hexBlock`, `TERRAIN_NOTE`), `render/hud.js` (légende des PV
   du badge de score, `renderScore`) et
   `loop/turn.js` (`endGame`). **Toute modification d'une règle doit mettre à jour ces
   textes.** La table CRT et la légende des résultats sont générées depuis `COLL`, `CRT` et
   `RES`.
-- `prefers-reduced-motion` est respecté (`reduced` dans `render/map.js`).
+- `prefers-reduced-motion` est respecté (`reduced` dans `render/map.js` et `render/scenes.js`, qui n'affiche
+  alors que l'état final de chaque scène).
+- Les motifs SVG partagés (`#trees`, `#ihatch`) sont définis une fois dans `index.html` (`svg.defs`).
 
 ## Comportement attendu
 

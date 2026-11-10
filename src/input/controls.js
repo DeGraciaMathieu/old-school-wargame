@@ -5,7 +5,7 @@ import { AUDIO } from '../render/audio.js';
 import { render } from '../render/index.js';
 import { renderScore, scoreEl } from '../render/hud.js';
 import { applyZoom, drawStatic } from '../render/map.js';
-import { closeHall, closeModal, hall, modal, rulesScreen, sheet, startScreen } from '../render/sheets.js';
+import { closeHall, closeModal, closeRules, hall, modal, rulesPage, rulesScreen, sheet, startScreen } from '../render/sheets.js';
 import { curPhase, isAI, loadSaved, store } from '../state/store.js';
 
 /* ---------- Interactions : fenêtres, zoom, son ---------- */
@@ -31,7 +31,12 @@ hall.addEventListener('submit',e=>{
   store.hall.seeds[store.hall.pick]=n;startScreen();
 });
 document.getElementById('btnRules').addEventListener('click',rulesScreen);
-document.addEventListener('keydown',e=>{if(e.key!=='Escape'||modal.hidden)return;const c=sheet.querySelector('[data-close]');if(c){e.preventDefault();c.click();}});
+rulesPage.addEventListener('click',e=>{if(e.target.closest('[data-close]'))closeRules();});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(!modal.hidden){const c=sheet.querySelector('[data-close]');if(c){e.preventDefault();c.click();}return;}
+  if(!rulesPage.hidden){e.preventDefault();closeRules();}
+});
 document.getElementById('btnNew').addEventListener('click',()=>{if(!store.busy)openHall();});
 scoreEl.addEventListener('click',e=>{if(!e.target.closest('.vpsum'))return;store.scoreOpen=!store.scoreOpen;renderScore();});
 document.getElementById('zin').addEventListener('click',()=>{store.zoom=Math.min(ZOOM_MAX,store.zoom*ZOOM_STEP);applyZoom();});

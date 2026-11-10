@@ -34,12 +34,13 @@ Modules ES natifs servis tels quels (pas de build). Point d'entrée : `index.htm
 | `src/render/map.js` | `drawStatic(map,seed)` (terrain en masses, cadre gradué, rivières et routes lissées, cartouche, lumière), `miniMap(map)` (vignette de la salle des cartes), `regionName`, `renderMap`, `counter`, `counterIcon`, `fx`, `impact`, `animatePath`, `applyZoom`, `LIVE_CUT`, `pocketsSvg` | geometry, store |
 | `src/render/panel.js` | `renderPanel`, `hexBlock`, `combatBlock`, `resultBlock`, `unitMeta` | map, store |
 | `src/render/hud.js` | `renderTrack`, `renderScore` (badge de PV Bleus–Rouges dépliable), `renderAct`, `pulseScore`, `scoreEl` | store |
-| `src/render/sheets.js` | `openModal`, `closeModal`, `modeButtons`, `startScreen` (salle des cartes, écran plein `#hall`), `closeHall`, `rulesScreen` | rules/mapgen, map, store |
+| `src/render/sheets.js` | `openModal`, `closeModal`, `modeButtons`, `startScreen` (salle des cartes, écran plein `#hall`), `closeHall`, `rulesScreen` (règles, écran plein `#rules` avec sommaire), `closeRules` | rules/mapgen, map, scenes, store |
+| `src/render/scenes.js` | Scènes SVG des règles jouées en boucle (SMIL, état final seul si mouvement réduit) : `sceneTerrain`, `sceneRoad`, `sceneRiver`, `sceneZoc`, `sceneBond`, `sceneSupply`, `sceneCombat` (rapport calculé par `rules/combat.odds`), `sceneRetreat`, `sceneCounter`, `typeCards` | config, rules/combat, map |
 | `src/render/index.js` | `render()` : piste, carte, score, barre d'action, panneau | render/* |
 | `src/render/audio.js` | `AUDIO` (Web Audio synthétisé, préférences dans `localStorage`) | store (lecture de la phase) |
 | `src/input/map.js` | `onHex` + écouteur de clic sur le SVG | loop/orders, store |
 | `src/input/actions.js` | `onAction` (`data-act` : end, undo, unit, toggle, attack, advance, cancel), `confirmEndCombat` | loop, render/sheets |
-| `src/input/controls.js` | Dépliage du badge de PV (`store.scoreOpen`), fenêtres (`data-mode`, `data-resume`, `data-rules`, `data-end-confirm`, `data-close`), Échap, zoom, son, `syncSound` | loop, render |
+| `src/input/controls.js` | Dépliage du badge de PV (`store.scoreOpen`), fenêtres (`data-mode`, `data-resume`, `data-rules`, `data-end-confirm`, `data-close`), fermeture de l'écran des règles, Échap, zoom, son, `syncSound` | loop, render |
 | `src/loop/turn.js` | `openHall(reroll)` (tire les trois graines), `newGame(mode,seed)`, `startPhase`, `endPhase`, `endGame` | rules/turn, render, store |
 | `src/loop/orders.js` | `useDice`, `doMove`, `undoMove`, `selectUnit`, `placeUnit`, `resolve`, `advance`, `captureEffects` | rules/combat, render, store |
 | `src/loop/ai.js` | `runAI`, `aiMove`, `aiCombat` (même logique pour les deux camps), `field` (Dijkstra mis en cache dans `fieldCache`, vidé à chaque partie et reprise) | orders, turn, store |
@@ -68,7 +69,7 @@ L'IA suit le même chemin : `startPhase` → `setTimeout(runAI, AI_START_DELAY)`
 | Nouveau bouton ou interaction | Balise `data-act="…"` dans le HTML généré par `render/`, traitement dans `onAction` (`input/actions.js`) | Logique dans `loop/` |
 | Nouveau son | Méthode de `AUDIO` dans `render/audio.js` | Appel depuis `loop/` |
 | Comportement de l'IA | `src/loop/ai.js`, poids et seuils dans `config.js` (`AI_*`) | — |
-| Texte de règle affiché | `rulesScreen` / `startScreen` (`render/sheets.js`), `hexBlock` et `TERRAIN_NOTE` (`render/panel.js`), `renderScore` (`render/hud.js`), `endGame` (`loop/turn.js`) | Garder en phase avec `config.js` |
+| Texte de règle affiché | `rulesScreen` / `startScreen` (`render/sheets.js`), scènes animées et leurs légendes (`render/scenes.js`), `hexBlock` et `TERRAIN_NOTE` (`render/panel.js`), `renderScore` (`render/hud.js`), `endGame` (`loop/turn.js`) | Garder en phase avec `config.js` |
 
 ## Écarts assumés
 
